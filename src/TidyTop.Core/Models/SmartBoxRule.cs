@@ -27,10 +27,13 @@ public sealed class SmartBoxRule
     }
 
     private static string NormalizeExtension(string extension)
-    {
-        extension = extension.Trim();
-        return extension.StartsWith('.', StringComparison.Ordinal) ? extension.ToLowerInvariant() : $".{extension.ToLowerInvariant()}";
-    }
+{
+    extension = extension.Trim();
+
+    return extension.StartsWith(".", StringComparison.Ordinal)
+        ? extension.ToLowerInvariant()
+        : $".{extension.ToLowerInvariant()}";
+}
 }
 
 public enum SmartBoxRuleKind
