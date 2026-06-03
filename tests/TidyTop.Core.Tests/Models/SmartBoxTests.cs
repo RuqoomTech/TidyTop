@@ -5,42 +5,26 @@ namespace TidyTop.Core.Tests.Models;
 public class SmartBoxTests
 {
     [Fact]
-    public void AddIcon_AssignsSmartBoxIdAndIncrementsCount()
+    public void AssignPath_DeduplicatesNormalizedPaths()
     {
-        var smartBox = new SmartBox { Id = Guid.NewGuid().ToString(), Title = "Work" };
-        var icon = new DesktopIcon { Name = "Report", FullPath = @"C:\Users\Test\Desktop\Report.pdf", Extension = ".pdf" };
+        var box = new SmartBox { Title = "Work" };
 
-        smartBox.AddIcon(icon);
-
-        Assert.Single(smartBox.Icons);
-        Assert.Equal(smartBox.Id, icon.SmartBoxId);
-        Assert.Contains("(1)", smartBox.FormattedTitle);
+        Assert.True(box.AssignPath(@"C:\Users\Test\Desktop\Report.pdf"));
+        Assert.False(box.AssignPath(@"c:\users\test\desktop\report.pdf"));
+        Assert.Single(box.ItemPaths);
     }
 
     [Fact]
-    public void RemoveIcon_ClearsSmartBoxId()
+    public void Matches_ReturnsFalseForManualBox()
     {
-        var smartBox = new SmartBox { Id = Guid.NewGuid().ToString(), Title = "Work" };
-        var icon = new DesktopIcon { Name = "Report", FullPath = @"C:\Users\Test\Desktop\Report.pdf", Extension = ".pdf" };
-        smartBox.AddIcon(icon);
-
-        smartBox.RemoveIcon(icon);
-
-        Assert.Empty(smartBox.Icons);
-        Assert.Null(icon.SmartBoxId);
-    }
-
-    [Fact]
-    public void MatchesIcon_UsesCategoryExtensions()
-    {
-        var category = new ApplicationCategory
+        var box = new SmartBox
         {
-            Name = "Documents",
-            FileExtensions = { ".pdf" }
+            Behavior = SmartBoxBehavior.Manual,
+            Rules = { new SmartBoxRule { Kind = SmartBoxRuleKind.Extension, Value = ".pdf" } }
         };
-        var smartBox = new SmartBox { Category = category, AutoOrganize = true };
-        var icon = new DesktopIcon { Name = "Manual", Extension = ".pdf", FullPath = @"C:\Desktop\Manual.pdf" };
 
-        Assert.True(smartBox.MatchesIcon(icon));
+        var item = new DesktopItem { Name = "Report", Extension = ".pdf" };
+
+        Assert.False(box.Matches(item));
     }
 }

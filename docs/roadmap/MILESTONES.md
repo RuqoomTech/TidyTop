@@ -2,130 +2,132 @@
 
 ## Milestone 0 — Repository cleanup
 
-Status: mostly done in this pass.
+Status: done.
 
 Goal: make the repository truthful and organized.
 
-Deliverables:
+Delivered:
 
-- Accurate README.
-- Ordered docs tree.
-- Clear MVP definition.
-- Old overclaiming docs removed.
+- Accurate docs tree.
 - Empty Data project removed.
-- Domain naming moved toward SmartBox.
-- Placeholder tests replaced with useful first tests.
+- Old clone/migration framing removed.
+- SmartBox vocabulary standardized.
+- Initial tests added.
 
-## Milestone 1 — Real display MVP
+## Milestone 1 — Foundation rewrite
 
-Goal: show real scanned desktop items inside category boxes.
+Status: done in this rewrite pass.
 
-Deliverables:
+Goal: make the codebase match the MVP scope.
 
-- Scan user desktop and common desktop.
-- Include shortcuts, URLs, executable files, folders, and common document files.
-- Render item names in the UI.
-- Show real counts per box.
-- Add an unboxed/other group.
-- Refresh button updates the UI.
+Delivered:
+
+- `DesktopItem`, `SmartBox`, `DesktopLayout`, and `DesktopWorkspace` models.
+- Path-based stable item identity.
+- Desktop scanner.
+- Default rule-based SmartBoxes.
+- Catch-all box.
+- Layout reconciliation.
+- JSON layout persistence.
+- JSON settings store.
+- View-model driven Avalonia UI.
+- Service-level manual SmartBox creation.
+- Expanded tests.
 
 Success check:
 
-- Add a shortcut to the desktop.
-- Click Refresh.
-- The item appears in the right box or in Other.
+- Run the app on Windows.
+- Real desktop items appear in SmartBoxes.
+- Press Refresh and the scan reconciles the layout.
+- Press Add SmartBox and a manual box appears.
+- Restart should load from `%APPDATA%/TidyTop/layout.json`.
 
-## Milestone 2 — SmartBox CRUD
+## Milestone 2 — Manual organization
 
-Goal: let users manage boxes manually.
+Goal: let users actually organize items.
 
 Deliverables:
 
-- Create SmartBox.
+- Move item to SmartBox command.
+- Move item back to Other / Unboxed.
+- Prevent duplicate assignments.
+- Context-menu fallback before drag/drop if needed.
+- Auto-save after assignment changes.
+- Tests for move/reassign/remove behavior.
+
+Success check:
+
+- User can move one desktop item from Other to a manual box and restart with the assignment preserved.
+
+## Milestone 3 — SmartBox CRUD UI
+
+Goal: make boxes manageable.
+
+Deliverables:
+
+- Create SmartBox dialog.
 - Rename SmartBox.
-- Delete SmartBox.
-- Change SmartBox color.
+- Delete SmartBox safely.
 - Collapse/expand SmartBox.
-- Store SmartBox metadata in memory first.
+- Simple color/accent selector.
 
 Success check:
 
-- User can create a box named “Work”, rename it, collapse it, and delete it.
+- User can create a box named “Work”, rename it, collapse it, delete it, and keep a valid layout.
 
-## Milestone 3 — Drag/drop organization
+## Milestone 4 — Visual layout controls
 
-Goal: make organization interactive.
+Goal: make SmartBoxes feel like movable desktop objects.
 
 Deliverables:
 
-- Drag desktop item row/card into a SmartBox.
-- Move item between SmartBoxes.
-- Move item back to Other.
-- Prevent duplicates.
-- Update counts immediately.
+- Move SmartBox on canvas.
+- Resize SmartBox.
+- Persist X/Y/width/height.
+- Add grid/snapping later only if needed.
 
 Success check:
 
-- User can move one desktop item from Other to Work and see the count update.
-
-## Milestone 4 — Layout persistence
-
-Goal: make organization survive restart.
-
-Deliverables:
-
-- Save default layout to JSON.
-- Auto-save after box changes or item moves.
-- Load layout on app startup.
-- Handle missing/deleted desktop files safely.
-- Add tests for save/load.
-
-Success check:
-
-- User organizes items, closes app, reopens app, and sees the same organization.
+- User can place SmartBoxes visually and restart with placement restored.
 
 ## Milestone 5 — Desktop overlay behavior
 
-Goal: make the app feel like a desktop layer, not just a dashboard.
+Goal: make the app feel like a desktop layer, not a dashboard.
 
 Deliverables:
 
-- Borderless desktop-positioned window mode.
-- Toggle normal window vs overlay mode.
-- Click-through rules defined and tested manually.
-- Keep boxes above wallpaper without blocking normal desktop use unnecessarily.
+- Overlay mode.
+- Normal window vs overlay toggle.
+- Click-through rules.
+- Manual Windows smoke tests.
 
 Success check:
 
-- User can organize boxes visually over the desktop and still use normal desktop interactions.
+- User can keep boxes over the desktop without breaking normal desktop use.
 
-## Milestone 6 — Quick hide/show
+## Milestone 6 — Quick hide/show and tray
 
-Goal: give users instant visual cleanup.
+Goal: add daily convenience.
 
 Deliverables:
 
 - In-app hide/show command.
 - Global Windows hotkey.
-- Tray icon with show/hide/exit.
-- Setting for hotkey.
+- Tray icon.
+- Startup option.
 
 Success check:
 
-- Press configured hotkey and all TidyTop boxes hide/show quickly.
+- User can instantly hide/show TidyTop from keyboard or tray.
 
 ## Milestone 7 — v0.1 release candidate
 
-Goal: package the first usable Windows MVP.
+Goal: package first usable Windows MVP.
 
 Deliverables:
 
-- Windows publish profile.
-- Installer or zipped portable build.
-- Smoke test checklist completed.
-- Known issues documented.
-- Versioned release notes.
-
-Success check:
-
-- A clean Windows machine can run the app and complete the v0.1 user flow.
+- Portable Windows publish.
+- Installer decision.
+- Release notes.
+- Known issues.
+- Smoke test checklist.

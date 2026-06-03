@@ -1,25 +1,21 @@
 using Microsoft.Extensions.DependencyInjection;
+using TidyTop.App.ViewModels;
 using TidyTop.Core.Services;
 
 namespace TidyTop.App.Services;
 
-/// <summary>
-/// Extension methods for configuring services in the dependency injection container
-/// </summary>
 public static class ServiceCollectionExtensions
 {
-    /// <summary>
-    /// Adds core TidyTop services to the service collection
-    /// </summary>
-    /// <param name="services">The service collection</param>
-    /// <returns>The service collection for chaining</returns>
-    public static IServiceCollection AddTidyTopServices(this IServiceCollection services)
+    public static IServiceCollection AddTidyTop(this IServiceCollection services)
     {
-        // Register services
-        services.AddSingleton<ISettingsService, SettingsService>();
-        services.AddSingleton<IDesktopIconService, DesktopIconService>();
-        services.AddSingleton<ISmartBoxService, SmartBoxService>();
-        services.AddSingleton<IDesktopLayoutService, DesktopLayoutService>();
+        services.AddSingleton(AppDataPaths.CreateDefault());
+        services.AddSingleton<IDesktopScanner, DesktopScanner>();
+        services.AddSingleton<ILayoutStore, JsonLayoutStore>();
+        services.AddSingleton<IAppSettingsStore, JsonAppSettingsStore>();
+        services.AddSingleton<LayoutReconciler>();
+        services.AddSingleton<IDesktopWorkspaceService, DesktopWorkspaceService>();
+
+        services.AddTransient<MainWindowViewModel>();
 
         return services;
     }

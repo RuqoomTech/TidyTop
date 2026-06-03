@@ -4,160 +4,139 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:TidyTop.App.ViewModels"
         mc:Ignorable="d"
-        d:DesignWidth="1280"
-        d:DesignHeight="820"
         x:Class="TidyTop.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="TidyTop"
         Width="1280"
         Height="820"
-        MinWidth="920"
-        MinHeight="620"
-        Background="#FF151719">
+        MinWidth="960"
+        MinHeight="640"
+        Background="#0F172A">
 
     <Grid RowDefinitions="Auto,*,Auto">
         <Border Grid.Row="0"
-                Background="#FF202327"
-                BorderBrush="#22313A"
+                Background="#111827"
+                BorderBrush="#1F2937"
                 BorderThickness="0,0,0,1"
-                Padding="18,14">
+                Padding="20,14">
             <Grid ColumnDefinitions="*,Auto">
                 <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                    <TextBlock Text="🧹" FontSize="28" VerticalAlignment="Center"/>
-                    <StackPanel>
-                        <TextBlock Text="TidyTop" FontSize="22" FontWeight="Bold" Foreground="White"/>
-                        <TextBlock Text="Windows-first desktop organizer MVP" FontSize="12" Foreground="#FF9EAAB4"/>
+                    <TextBlock Text="🧹" FontSize="30" VerticalAlignment="Center"/>
+                    <StackPanel Spacing="1">
+                        <TextBlock Text="{Binding Title}" FontSize="23" FontWeight="Bold" Foreground="White"/>
+                        <TextBlock Text="{Binding Subtitle}" FontSize="12" Foreground="#94A3B8"/>
                     </StackPanel>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <Button Content="Refresh"
-                            Padding="14,8"
-                            Click="RefreshButton_Click"/>
-                    <Button Content="Add SmartBox"
-                            Padding="14,8"
-                            Click="AddBoxButton_Click"/>
-                    <Button Content="Settings"
-                            Padding="14,8"
-                            Click="SettingsButton_Click"/>
+                    <Button Content="Refresh" Padding="14,8" Command="{Binding RefreshCommand}"/>
+                    <Button Content="Add SmartBox" Padding="14,8" Command="{Binding AddSmartBoxCommand}"/>
+                    <Button Content="Save" Padding="14,8" Command="{Binding SaveLayoutCommand}"/>
+                    <Button Content="Reset" Padding="14,8" Command="{Binding ResetLayoutCommand}"/>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <ScrollViewer Grid.Row="1"
-                      HorizontalScrollBarVisibility="Disabled"
-                      VerticalScrollBarVisibility="Auto">
-            <WrapPanel Margin="18"
-                       Orientation="Horizontal"
-                       ItemWidth="300"
-                       ItemHeight="280">
+        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding SmartBoxes}" Margin="18">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
 
-                <Border Background="#FF243626" CornerRadius="14" Margin="8" Padding="0" Width="284" Height="264">
-                    <Grid RowDefinitions="Auto,*">
-                        <Border Background="#FF1D5128" CornerRadius="14,14,0,0" Padding="14,12">
-                            <Grid ColumnDefinitions="Auto,*,Auto">
-                                <TextBlock Text="📊" FontSize="20" Margin="0,0,10,0"/>
-                                <TextBlock Grid.Column="1" Text="Office &amp; Documents" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="OfficeCountText" Grid.Column="2" Text="0" Foreground="#FFD2E8D3"/>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SmartBoxViewModel">
+                        <Border Width="340"
+                                Height="286"
+                                Margin="8"
+                                CornerRadius="16"
+                                BorderThickness="1"
+                                BorderBrush="{Binding AccentBrush}"
+                                Background="#182235">
+                            <Grid RowDefinitions="Auto,*">
+                                <Border Grid.Row="0"
+                                        Background="{Binding AccentBrush}"
+                                        CornerRadius="15,15,0,0"
+                                        Padding="14,11">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Text="{Binding HeaderText}"
+                                                   FontWeight="Bold"
+                                                   Foreground="White"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding Behavior}"
+                                                   FontSize="11"
+                                                   Foreground="#E2E8F0"
+                                                   VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+
+                                <ScrollViewer Grid.Row="1" Padding="12" VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl ItemsSource="{Binding Items}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:DesktopItemViewModel">
+                                                <Border CornerRadius="10"
+                                                        Background="#14FFFFFF"
+                                                        Padding="9,7"
+                                                        Margin="0,0,0,7">
+                                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="9">
+                                                        <TextBlock Text="{Binding Icon}" FontSize="17" VerticalAlignment="Center"/>
+                                                        <StackPanel Grid.Column="1" Spacing="1">
+                                                            <TextBlock Text="{Binding Name}"
+                                                                       Foreground="White"
+                                                                       FontSize="13"
+                                                                       TextTrimming="CharacterEllipsis"/>
+                                                            <TextBlock Text="{Binding FullPath}"
+                                                                       Foreground="#64748B"
+                                                                       FontSize="10"
+                                                                       TextTrimming="CharacterEllipsis"/>
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="2"
+                                                                   Text="{Binding Subtitle}"
+                                                                   Foreground="#CBD5E1"
+                                                                   FontSize="10"
+                                                                   VerticalAlignment="Center"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
                             </Grid>
                         </Border>
-                        <ScrollViewer Grid.Row="1" Padding="12" VerticalScrollBarVisibility="Auto">
-                            <StackPanel x:Name="OfficeItemsPanel" Spacing="6"/>
-                        </ScrollViewer>
-                    </Grid>
-                </Border>
-
-                <Border Background="#FF33233D" CornerRadius="14" Margin="8" Padding="0" Width="284" Height="264">
-                    <Grid RowDefinitions="Auto,*">
-                        <Border Background="#FF4B1762" CornerRadius="14,14,0,0" Padding="14,12">
-                            <Grid ColumnDefinitions="Auto,*,Auto">
-                                <TextBlock Text="🎮" FontSize="20" Margin="0,0,10,0"/>
-                                <TextBlock Grid.Column="1" Text="Games" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="GamesCountText" Grid.Column="2" Text="0" Foreground="#FFE7D5F0"/>
-                            </Grid>
-                        </Border>
-                        <ScrollViewer Grid.Row="1" Padding="12" VerticalScrollBarVisibility="Auto">
-                            <StackPanel x:Name="GamesItemsPanel" Spacing="6"/>
-                        </ScrollViewer>
-                    </Grid>
-                </Border>
-
-                <Border Background="#FF223340" CornerRadius="14" Margin="8" Padding="0" Width="284" Height="264">
-                    <Grid RowDefinitions="Auto,*">
-                        <Border Background="#FF17496B" CornerRadius="14,14,0,0" Padding="14,12">
-                            <Grid ColumnDefinitions="Auto,*,Auto">
-                                <TextBlock Text="💬" FontSize="20" Margin="0,0,10,0"/>
-                                <TextBlock Grid.Column="1" Text="Web &amp; Communication" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="SocialCountText" Grid.Column="2" Text="0" Foreground="#FFD4E9F8"/>
-                            </Grid>
-                        </Border>
-                        <ScrollViewer Grid.Row="1" Padding="12" VerticalScrollBarVisibility="Auto">
-                            <StackPanel x:Name="SocialItemsPanel" Spacing="6"/>
-                        </ScrollViewer>
-                    </Grid>
-                </Border>
-
-                <Border Background="#FF3D3023" CornerRadius="14" Margin="8" Padding="0" Width="284" Height="264">
-                    <Grid RowDefinitions="Auto,*">
-                        <Border Background="#FF7A420D" CornerRadius="14,14,0,0" Padding="14,12">
-                            <Grid ColumnDefinitions="Auto,*,Auto">
-                                <TextBlock Text="📁" FontSize="20" Margin="0,0,10,0"/>
-                                <TextBlock Grid.Column="1" Text="Files &amp; Folders" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="FilesCountText" Grid.Column="2" Text="0" Foreground="#FFFFE2BE"/>
-                            </Grid>
-                        </Border>
-                        <ScrollViewer Grid.Row="1" Padding="12" VerticalScrollBarVisibility="Auto">
-                            <StackPanel x:Name="FilesItemsPanel" Spacing="6"/>
-                        </ScrollViewer>
-                    </Grid>
-                </Border>
-
-                <Border Background="#FF2B2F36" CornerRadius="14" Margin="8" Padding="0" Width="284" Height="264">
-                    <Grid RowDefinitions="Auto,*">
-                        <Border Background="#FF3B424D" CornerRadius="14,14,0,0" Padding="14,12">
-                            <Grid ColumnDefinitions="Auto,*,Auto">
-                                <TextBlock Text="✨" FontSize="20" Margin="0,0,10,0"/>
-                                <TextBlock Grid.Column="1" Text="Other / Unboxed" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="OtherCountText" Grid.Column="2" Text="0" Foreground="#FFE2E8F0"/>
-                            </Grid>
-                        </Border>
-                        <ScrollViewer Grid.Row="1" Padding="12" VerticalScrollBarVisibility="Auto">
-                            <StackPanel x:Name="OtherItemsPanel" Spacing="6"/>
-                        </ScrollViewer>
-                    </Grid>
-                </Border>
-            </WrapPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </ScrollViewer>
 
         <Border Grid.Row="2"
-                Background="#FF202327"
-                BorderBrush="#22313A"
+                Background="#111827"
+                BorderBrush="#1F2937"
                 BorderThickness="0,1,0,0"
                 Padding="16,10">
             <Grid ColumnDefinitions="*,Auto">
-                <TextBlock x:Name="StatusText"
-                           Text="Ready"
-                           Foreground="#FFB7C3CC"
-                           VerticalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="#CBD5E1"/>
+                    <TextBlock Text="{Binding ErrorMessage}" Foreground="#FCA5A5" IsVisible="{Binding HasError}"/>
+                </StackPanel>
                 <TextBlock Grid.Column="1"
-                           Text="MVP focus: scan → display → organize → save → restore"
-                           Foreground="#FF77838E"
+                           Text="{Binding SummaryText}"
+                           Foreground="#94A3B8"
                            VerticalAlignment="Center"/>
             </Grid>
         </Border>
 
-        <Grid x:Name="LoadingOverlay"
-              Grid.RowSpan="3"
-              Background="#99000000"
-              IsVisible="False">
-            <Border Background="#FF202327"
-                    CornerRadius="12"
+        <Grid Grid.RowSpan="3" Background="#99000000" IsVisible="{Binding IsBusy}">
+            <Border Background="#111827"
+                    CornerRadius="14"
                     Padding="22"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <TextBlock Text="🔄" FontSize="22"/>
-                    <TextBlock Text="Scanning desktop..." Foreground="White" FontSize="15" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="White" FontSize="15" VerticalAlignment="Center"/>
                 </StackPanel>
             </Border>
         </Grid>

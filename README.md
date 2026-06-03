@@ -1,59 +1,63 @@
 # TidyTop
 
-TidyTop is a Windows-first desktop organization app built with .NET 8 and Avalonia. The goal is simple: help users group desktop shortcuts and files into clean, visual boxes, then save and restore that layout reliably.
+TidyTop is a Windows-first desktop organizer built with .NET 8 and Avalonia. Its first useful goal is deliberately small: scan the Windows desktop, group real desktop items into SmartBoxes, persist the layout, and restore it safely on restart.
 
-The current repository is an early MVP foundation. It can scan desktop items and display them in starter category boxes, but full desktop icon control, drag/drop placement, persistent layouts, resizing, and hotkeys are still planned work.
+TidyTop is not positioned as a clone. The product direction is:
 
-## Product direction
+> A lightweight desktop organization layer for people who want a cleaner desktop without replacing Windows Explorer.
 
-TidyTop should be positioned as a lightweight desktop organizer, not as a clone of another product. The app should focus on the smallest useful workflow first:
+## Current foundation
 
-1. Scan the desktop.
-2. Display real desktop items inside visual boxes.
-3. Let the user create, rename, move, and resize boxes.
-4. Let the user move items between boxes.
-5. Save the layout.
-6. Restore the same layout after restart.
-7. Add a quick hide/show shortcut.
+This rewrite makes the repository match the real MVP scope:
 
-## Current status
+- real domain model: `DesktopItem`, `SmartBox`, `DesktopLayout`, `DesktopWorkspace`
+- stable path-based item identity
+- desktop scanner for user and public desktop folders
+- rule-based default SmartBoxes
+- catch-all `Other / Unboxed` SmartBox
+- layout reconciliation for new/deleted desktop items
+- JSON layout persistence under `%APPDATA%/TidyTop/layout.json`
+- JSON settings store under `%APPDATA%/TidyTop/settings.json`
+- Avalonia UI bound to view models, not manual code-behind rendering
+- tests for rules, SmartBoxes, layout cloning, reconciliation, layout JSON round trip, and main view-model loading
 
-| Area | Status |
-| --- | --- |
-| Avalonia shell | Started |
-| Desktop scan | Started |
-| Category display | Started |
-| Real icon rendering | Planned |
-| User-created boxes | Planned |
-| Drag/drop between boxes | Planned |
-| Layout persistence | Planned |
-| Quick hide/show hotkey | Planned |
-| Installer/release packaging | Planned |
+## MVP product loop
 
-See [`docs/STATUS.md`](docs/STATUS.md) for the detailed state.
+The v0.1 loop is:
+
+1. Scan desktop items.
+2. Display them in SmartBoxes.
+3. Create manual SmartBoxes.
+4. Move items between SmartBoxes.
+5. Save layout automatically.
+6. Restore layout on restart.
+7. Add quick hide/show.
+
+The current rewrite completes the foundation for steps 1, 2, 3, 5, and 6 at the service/model level. Manual drag/drop movement and real desktop overlay behavior are the next major pieces.
 
 ## Tech stack
 
 - .NET 8
 - Avalonia UI
-- C#
+- ReactiveUI base objects
+- Microsoft dependency injection
 - xUnit
-- Windows-first desktop integration
+- Windows-first runtime target for the app
 
 ## Repository structure
 
 ```text
 TidyTop/
-├── assets/                    # Brand assets and static images
-├── docs/                      # Product, architecture, roadmap, and task docs
+├── assets/                    # Brand assets
+├── docs/                      # Product, architecture, roadmap, and workflow docs
 ├── src/
-│   ├── TidyTop.App/           # Avalonia UI application
-│   └── TidyTop.Core/          # Domain models and core services
+│   ├── TidyTop.App/           # Avalonia UI, commands, view models, composition
+│   └── TidyTop.Core/          # Domain models, scanning, reconciliation, persistence
 ├── tests/
-│   ├── TidyTop.App.Tests/     # App/view-model level tests
+│   ├── TidyTop.App.Tests/     # View-model tests
 │   └── TidyTop.Core.Tests/    # Domain and service tests
-├── Directory.Build.props      # Shared .NET build settings
-├── TidyTop.sln                # Visual Studio solution
+├── Directory.Build.props
+├── TidyTop.sln
 └── README.md
 ```
 
@@ -80,4 +84,4 @@ dotnet test
 
 ## Development rule
 
-Do not mark a feature as complete until it works in the app and has at least one useful test or manual verification note. Keep `docs/STATUS.md` and `docs/roadmap/TASKS.md` updated after each completed task.
+Do not mark a feature as complete unless it is wired into the app and covered by tests or a written manual verification note. Keep `docs/STATUS.md` and `docs/roadmap/TASKS.md` updated after each completed task.

@@ -2,153 +2,135 @@
 
 ## Rules
 
-- Keep tasks small enough to complete and verify in one focused session.
-- Update this file after finishing a task.
-- Move completed items to `Done` with a short note.
+- Keep tasks small enough to verify in one focused session.
+- Update this file after each completed task.
 - Do not mark UI-only placeholders as complete product features.
+- Every core behavior needs a test or a manual verification note.
 
-## Now: Milestone 1 — Real display MVP
+## Now: Milestone 2 — Manual organization
 
-### M1-01 — Render scanned desktop items in category boxes
-
-Status: started.
-
-Acceptance criteria:
-
-- Desktop scan result appears in UI, not just status text.
-- Counts update per category.
-- Empty boxes show an empty-state message.
-- Other/unboxed items are visible.
-
-### M1-02 — Include common desktop folder
-
-Status: started.
-
-Acceptance criteria:
-
-- User desktop and common/public desktop are scanned.
-- Duplicate paths are ignored.
-- Hidden/system files are ignored.
-
-### M1-03 — Replace code-behind categorization with shared core categorizer
+### M2-01 — Add core item reassignment API
 
 Status: todo.
 
 Acceptance criteria:
 
-- Category rules live in Core.
-- UI only renders the grouped result.
-- Unit tests cover at least five categorization cases.
+- Move item from any SmartBox to another SmartBox.
+- Move item to catch-all / Other.
+- Item cannot exist in two boxes at once.
+- Layout auto-saves after successful move.
+- Unit tests cover move, duplicate prevention, and missing item behavior.
 
-### M1-04 — Render icons/images when available
-
-Status: todo.
-
-Acceptance criteria:
-
-- Shortcut/file icon extraction is displayed when available.
-- Fallback icon is shown when extraction fails.
-- App does not crash on non-Windows runtime.
-
-## Next: Milestone 2 — SmartBox CRUD
-
-### M2-01 — Create SmartBox dialog
+### M2-02 — Add UI move command fallback
 
 Status: todo.
 
 Acceptance criteria:
 
-- Add Box opens a real dialog.
-- User can enter title and choose starter color.
-- Created SmartBox appears immediately.
+- Each item row exposes a move action.
+- User can choose target SmartBox.
+- Counts update immediately.
+- Works without drag/drop.
 
-### M2-02 — Rename SmartBox
+### M2-03 — Persist manual assignments after restart
 
 Status: todo.
 
 Acceptance criteria:
 
-- User can rename a SmartBox.
-- Empty names are rejected.
-- UI updates immediately.
+- Manual assignment is written to `%APPDATA%/TidyTop/layout.json`.
+- App restart restores the assignment.
+- Deleted desktop files are removed safely on next scan.
 
-### M2-03 — Delete SmartBox safely
+## Next: Milestone 3 — SmartBox CRUD UI
+
+### M3-01 — Create SmartBox dialog
+
+Status: todo.
+
+Acceptance criteria:
+
+- Add SmartBox opens a dialog.
+- User can enter title.
+- Empty title is rejected.
+- Box appears immediately and saves.
+
+### M3-02 — Rename SmartBox
+
+Status: todo.
+
+Acceptance criteria:
+
+- User can rename a manual SmartBox.
+- System boxes can be renamed only if we intentionally allow it.
+- Rename persists after restart.
+
+### M3-03 — Delete SmartBox safely
 
 Status: todo.
 
 Acceptance criteria:
 
 - User confirms deletion.
-- Items inside deleted SmartBox move to Other/unboxed.
-- No duplicate item entries remain.
+- Items inside deleted SmartBox move to Other.
+- System catch-all cannot be deleted.
 
-### M2-04 — Collapse/expand SmartBox
-
-Status: todo.
-
-Acceptance criteria:
-
-- User can collapse and expand a SmartBox.
-- Collapsed SmartBox shows title and count only.
-- State is included in layout model.
-
-## Next: Milestone 3 — Drag/drop
-
-### M3-01 — Drag item between visual boxes
+### M3-04 — Collapse/expand SmartBox
 
 Status: todo.
 
 Acceptance criteria:
 
-- Item can move between boxes.
-- Counts update.
-- Item cannot exist in two boxes at once.
+- Collapse shows title and count only.
+- State persists in layout JSON.
 
-### M3-02 — Keyboard move command
+## Next: Milestone 4 — Drag/drop
 
-Status: todo.
-
-Acceptance criteria:
-
-- Selected item can be moved using a context menu or keyboard command.
-- This supports users who do not like drag/drop.
-
-## Next: Milestone 4 — Layout persistence
-
-### M4-01 — Layout JSON repository
+### M4-01 — Drag item between boxes
 
 Status: todo.
 
 Acceptance criteria:
 
-- Save layout to `%APPDATA%/TidyTop/layouts/default.json`.
-- Load layout safely.
-- Corrupt JSON is backed up and replaced with default layout.
+- Item can move between boxes with drag/drop.
+- Drop targets are visually clear.
+- Counts update immediately.
 
-### M4-02 — Auto-save layout changes
-
-Status: todo.
-
-Acceptance criteria:
-
-- Changes are saved after a short debounce.
-- App close flushes pending changes.
-- Tests cover save/load round trip.
-
-### M4-03 — Missing item reconciliation
+### M4-02 — Drag item back to Other
 
 Status: todo.
 
 Acceptance criteria:
 
-- If a file no longer exists, it is removed or marked missing safely.
-- New desktop items appear in Other or auto-category.
+- Item can be returned to catch-all.
+- Assignment is removed from previous box.
 
-## Later: Milestones 5-7
+## Next: Milestone 5 — Visual placement
 
+### M5-01 — Switch SmartBox surface from WrapPanel to Canvas
+
+Status: todo.
+
+Acceptance criteria:
+
+- SmartBox X/Y from layout model controls placement.
+- Window still supports scrolling or a large workspace safely.
+
+### M5-02 — Move and resize SmartBox
+
+Status: todo.
+
+Acceptance criteria:
+
+- User can drag a SmartBox header to move.
+- User can resize a SmartBox.
+- Placement persists after restart.
+
+## Later
+
+- Real icon extraction.
 - Overlay mode.
-- SmartBox positioning and resizing.
-- Global hotkeys.
+- Global hotkey.
 - Tray icon.
 - Installer.
 - Release checklist.
@@ -157,16 +139,27 @@ Acceptance criteria:
 
 ### D-01 — Remove misleading docs
 
-Completed in repository cleanup.
+Completed in cleanup pass.
 
 ### D-02 — Move docs into structured docs tree
 
-Completed in repository cleanup.
+Completed in cleanup pass.
 
 ### D-03 — Remove empty Data project
 
-Completed in repository cleanup.
+Completed in cleanup pass.
 
 ### D-04 — Replace placeholder tests
 
-Completed with initial model/view-model tests. More coverage still needed.
+Completed with initial model/view-model tests.
+
+### D-05 — Rewrite foundation around scoped MVP
+
+Completed in foundation rewrite.
+
+Notes:
+
+- Replaced duplicated icon-in-box model with path-based SmartBox assignments.
+- Added scanner, reconciler, JSON layout store, JSON settings store, workspace service.
+- Replaced code-behind desktop grouping with view-model-bound UI.
+- Added tests for matching, reconciliation, persistence, and main VM behavior.

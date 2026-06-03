@@ -1,62 +1,35 @@
-﻿using Avalonia;
+using Avalonia;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using System;
 using TidyTop.App.Services;
 
 namespace TidyTop.App;
 
-class Program
+internal static class Program
 {
-    // Initialization code. Don't use any Avalonia, third-party APIs or any
-    // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
-    // yet and stuff might break.
     [STAThread]
     public static void Main(string[] args)
     {
-        // Create the host builder
-        var host = Host.CreateDefaultBuilder(args)
-            .ConfigureServices((context, services) =>
-            {
-                // Add TidyTop services
-                services.AddTidyTopServices();
-                
-                // Add the application host service
-                services.AddHostedService<ApplicationHostService>();
-            })
-            .Build();
+        var services = new ServiceCollection()
+            .AddTidyTop()
+            .BuildServiceProvider(validateScopes: true);
 
-        // Start the host
-        host.Start();
+        App.Services = services;
 
-        // Get the application host service
-        var appHost = host.Services.GetRequiredService<IHostedService>() as ApplicationHostService;
-        
-        // Build and start the Avalonia application
-        BuildAvaloniaApp(appHost)
-            .StartWithClassicDesktopLifetime(args);
-
-        // Stop the host when the application exits
-        host.StopAsync().Wait();
-        host.Dispose();
+        try
+        {
+            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        }
+        finally
+        {
+            services.Dispose();
+        }
     }
 
-    // Avalonia configuration, don't remove; also used by visual designer.
-    public static AppBuilder BuildAvaloniaApp(ApplicationHostService? appHost = null)
-        => AppBuilder.Configure<App>()
+    public static AppBuilder BuildAvaloniaApp()
+    {
+        return AppBuilder.Configure<App>()
+            .UsePlatformDetect()
             .WithInterFont()
-            .LogToTrace()
-            .AfterSetup(builder =>
-            {
-                // Set the application host service
-                if (appHost != null)
-                {
-                    var app = builder.Instance as App;
-                    if (app != null)
-                    {
-                        app.AppHost = appHost;
-                    }
-                }
-            })
-            .UsePlatformDetect();
+            .LogToTrace();
+    }
 }

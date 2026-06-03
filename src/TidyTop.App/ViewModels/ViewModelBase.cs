@@ -1,15 +1,12 @@
-using System;
-using System.Reactive;
 using ReactiveUI;
 
 namespace TidyTop.App.ViewModels;
 
-public class ViewModelBase : ReactiveObject, IDisposable
+public abstract class ViewModelBase : ReactiveObject
 {
     private bool _isBusy;
-    private string _statusMessage = string.Empty;
-    private bool _hasErrors;
-    private string _errorMessage = string.Empty;
+    private string _statusMessage = "Ready";
+    private string? _errorMessage;
 
     public bool IsBusy
     {
@@ -23,47 +20,33 @@ public class ViewModelBase : ReactiveObject, IDisposable
         protected set => this.RaiseAndSetIfChanged(ref _statusMessage, value);
     }
 
-    public bool HasErrors
-    {
-        get => _hasErrors;
-        protected set => this.RaiseAndSetIfChanged(ref _hasErrors, value);
-    }
-
-    public string ErrorMessage
+    public string? ErrorMessage
     {
         get => _errorMessage;
         protected set => this.RaiseAndSetIfChanged(ref _errorMessage, value);
     }
 
-    protected void SetBusy(string? statusMessage = null)
+    public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
+
+    protected void BeginBusy(string message)
     {
+        ErrorMessage = null;
+        this.RaisePropertyChanged(nameof(HasError));
+        StatusMessage = message;
         IsBusy = true;
-        StatusMessage = statusMessage ?? string.Empty;
-        HasErrors = false;
-        ErrorMessage = string.Empty;
     }
 
-    protected void SetIdle(string? statusMessage = null)
+    protected void EndBusy(string message)
     {
-        IsBusy = false;
-        StatusMessage = statusMessage ?? string.Empty;
-    }
-
-    protected void SetError(string errorMessage)
-    {
-        HasErrors = true;
-        ErrorMessage = errorMessage;
+        StatusMessage = message;
         IsBusy = false;
     }
 
-    protected void ClearError()
+    protected void Fail(string message)
     {
-        HasErrors = false;
-        ErrorMessage = string.Empty;
-    }
-
-    public virtual void Dispose()
-    {
-        // Clean up resources if needed
+        ErrorMessage = message;
+        this.RaisePropertyChanged(nameof(HasError));
+        StatusMessage = message;
+        IsBusy = false;
     }
 }

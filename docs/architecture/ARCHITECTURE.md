@@ -5,129 +5,88 @@
 ```text
 src/
 ├── TidyTop.App/
-│   ├── Converters/       # Avalonia value converters
-│   ├── Services/         # App composition and DI registration
-│   ├── ViewModels/       # ReactiveUI view models
-│   └── Views/            # Avalonia windows
+│   ├── Commands/        # UI command helpers
+│   ├── Services/        # App composition and DI registration
+│   ├── ViewModels/      # UI state and command orchestration
+│   └── Views/           # Avalonia XAML windows
 └── TidyTop.Core/
-    ├── Models/           # Domain models
-    └── Services/         # Core services and interfaces
+    ├── Models/          # Domain models and runtime projections
+    └── Services/        # Scanning, reconciliation, persistence, workspace orchestration
 ```
 
-## Why the Data project was removed
+## Domain model
 
-The old `TidyTop.Data` project was empty. Empty projects add noise and make the architecture look more mature than it is.
-
-Add a data project later only when there is a clear persistence responsibility, such as:
-
-- SQLite storage.
-- layout repository abstraction.
-- migrations.
-- import/export format handling.
-
-For now, layout JSON persistence can live behind an interface in `TidyTop.Core.Services` until it grows.
-
-## Domain language
-
-Use these terms consistently:
-
-| Term | Meaning |
+| Model | Purpose |
 | --- | --- |
-| DesktopIcon | A file, shortcut, folder, or URL entry discovered from the desktop. |
-| SmartBox | A visual container that groups desktop icons. |
-| DesktopLayout | A saved arrangement of SmartBoxes and unboxed desktop icons. |
-| ApplicationCategory | Starter categorization rules used for first-run grouping. |
+| `DesktopItem` | One real file/folder/shortcut discovered from desktop folders. |
+| `SmartBox` | A persisted container that stores assigned item paths and optional matching rules. |
+| `SmartBoxRule` | A simple rule: extension, name contains, path contains, or item type. |
+| `DesktopLayout` | The persisted layout containing SmartBoxes. |
+| `DesktopWorkspace` | Runtime projection of layout + current desktop scan. |
+| `SmartBoxSnapshot` | One SmartBox plus the live `DesktopItem` objects it currently contains. |
+| `AppSettings` | Settings independent from a specific layout. |
 
-Avoid `Fence` naming in new code.
+## Important foundation decision
 
-## Layer responsibilities
+SmartBoxes persist **normalized item paths**, not copied desktop item objects.
 
-### TidyTop.App
+Reason: desktop files change. A saved layout should remember assignment identity, then reconcile against the latest scan. This avoids stale duplicated items and makes deleted/new desktop files easier to handle.
 
-Responsible for:
+## Core services
 
-- Windows and Avalonia UI.
-- View models.
-- User interaction.
-- Rendering desktop items and SmartBoxes.
-- Dialogs/settings screens.
+| Service | Responsibility |
+| --- | --- |
+| `DesktopScanner` | Best-effort scan of user/public desktop folders. |
+| `DefaultSmartBoxFactory` | Creates first-run system SmartBoxes. |
+| `LayoutReconciler` | Cleans assignments, applies rules, and fills catch-all box. |
+| `JsonLayoutStore` | Saves/loads layout JSON atomically. |
+| `JsonAppSettingsStore` | Saves/loads settings JSON. |
+| `DesktopWorkspaceService` | High-level scan → reconcile → save flow used by the UI. |
 
-Not responsible for:
+## App layer
 
-- Domain rules.
-- Layout persistence rules.
-- Desktop scan logic.
+`TidyTop.App` should stay thin:
 
-### TidyTop.Core
+- create the DI container,
+- bind views to view models,
+- display SmartBoxes and desktop item rows,
+- send user commands to core services.
 
-Responsible for:
+It should not own categorization, persistence, or scan rules.
 
-- Domain models.
-- Desktop scan abstraction.
-- SmartBox management.
-- Layout management.
-- Settings model and persistence.
+## Persistence
 
-Not responsible for:
-
-- Avalonia controls.
-- UI colors/layout details beyond serializable settings.
-- Installer behavior.
-
-## Windows-first technical decision
-
-Desktop integration is OS-specific. For v0.1, treat Windows as the only supported runtime.
-
-Future platform support should be introduced through interfaces such as:
+Current files:
 
 ```text
-IDesktopItemProvider
+%APPDATA%/TidyTop/layout.json
+%APPDATA%/TidyTop/settings.json
+```
+
+This is enough for v0.1. SQLite should wait until there is a real need for migration history, multiple layouts, search, or analytics.
+
+## Windows-first decision
+
+The app project targets `net8.0-windows`. The Core project targets `net8.0` and avoids UI/Desktop API dependencies where possible.
+
+Future platform-specific work should be isolated behind interfaces:
+
+```text
 IDesktopPositionService
 IGlobalHotkeyService
+ITrayService
 IStartupRegistrationService
 ```
 
-Then add platform implementations:
-
-```text
-TidyTop.Platform.Windows
-TidyTop.Platform.Mac
-TidyTop.Platform.Linux
-```
-
-Do not claim cross-platform support until these implementations exist and pass manual tests.
-
-## Persistence direction
-
-Start with simple JSON files under the user app data folder:
-
-```text
-%APPDATA%/TidyTop/settings.json
-%APPDATA%/TidyTop/layouts/default.json
-%APPDATA%/TidyTop/layouts/{layout-id}.json
-```
-
-Use SQLite only if JSON becomes painful because of search, history, migrations, or large data.
-
-## UI direction
-
-The UI should stay calm and practical:
-
-- Dark translucent boxes.
-- Clear title and count.
-- Compact icon grid.
-- Minimal animations.
-- Keyboard shortcuts only after the core flow is stable.
+Do not claim cross-platform desktop organization until platform implementations actually exist.
 
 ## Testing strategy
 
 Priority order:
 
-1. Domain model tests.
-2. SmartBox service tests.
-3. Layout persistence tests.
-4. Categorization tests.
-5. Desktop scan tests with a fake folder provider.
-6. UI smoke tests where practical.
-
-Do not rely only on manual testing for layout save/restore.
+1. domain model tests,
+2. reconciliation tests,
+3. persistence tests,
+4. scanner tests with temporary directories or fake providers,
+5. view-model tests,
+6. manual Windows smoke tests for desktop behavior.

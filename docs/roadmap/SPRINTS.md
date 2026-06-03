@@ -1,144 +1,120 @@
 # Sprint Plan
 
-This sprint plan is intentionally sequential. Do not start later sprints until the previous sprint's acceptance criteria are working in the app.
-
 ## Sprint 0 — Cleanup and truth reset
 
-Status: completed in this repository cleanup pass.
-
-Goal: remove confusion and make the project maintainable.
+Status: done.
 
 Scope:
 
-- Rewrite README.
-- Replace old migration/clone docs.
-- Add docs index, product doc, status doc, architecture doc, tasks, milestones, workflow, and release checklist.
-- Remove empty `TidyTop.Data` project.
-- Move brand asset into `assets/`.
-- Rename domain direction from Fence to SmartBox.
-- Add first useful tests.
+- Rewrite docs.
+- Remove empty Data project.
+- Remove misleading completed claims.
+- Align language around SmartBox.
+
+## Sprint 1 — Foundation rewrite
+
+Status: done in this pass.
+
+Scope:
+
+- Replace old mixed models with clean domain models.
+- Move categorization/reconciliation into Core.
+- Add layout JSON persistence.
+- Add settings JSON store.
+- Replace code-behind rendering with view-model binding.
+- Add tests for the foundation.
 
 Exit criteria:
 
-- Repository structure is clear.
-- Docs describe the real app state.
-- No empty placeholder tests/classes remain.
+- App loads real desktop items into SmartBoxes.
+- Layout is saved to JSON.
+- New/deleted items reconcile safely.
+- Tests cover the core behavior.
 
-## Sprint 1 — Real desktop display
+## Sprint 2 — Item movement
 
-Goal: make the app visibly use real desktop data.
+Goal: make manual organization real.
 
 Scope:
 
-- Scan user desktop and common desktop.
-- Ignore hidden/system files.
-- Group real entries into starter categories.
-- Render real names in each SmartBox/category panel.
-- Show counts and empty states.
-- Add Other/unboxed group.
-- Refresh updates the visible data.
+- Add core methods for moving items between boxes.
+- Add command on item row: Move to box.
+- Add command on item row: Move to Other.
+- Auto-save after item move.
+- Add tests for reassignment.
 
 Exit criteria:
 
-- A new desktop shortcut appears in TidyTop after Refresh.
-- Counts are correct.
-- No static fake counts remain.
+- User can manually assign an item to a box and see it survive restart.
 
-## Sprint 2 — SmartBox CRUD
+## Sprint 3 — SmartBox CRUD UI
 
-Goal: let users create and manage their own boxes.
+Goal: make manual boxes useful.
 
 Scope:
 
-- Add SmartBox dialog.
+- Create SmartBox dialog.
 - Rename SmartBox.
-- Delete SmartBox safely.
+- Delete SmartBox.
 - Collapse/expand SmartBox.
-- Pick a simple color.
-- Store SmartBox state in memory.
+- Simple accent color picker.
 
 Exit criteria:
 
-- User can create, rename, collapse, and delete a SmartBox without restarting.
+- User can manage boxes without editing JSON.
 
-## Sprint 3 — Item movement
+## Sprint 4 — Drag/drop
 
-Goal: make organization interactive.
+Goal: make organization feel natural.
 
 Scope:
 
-- Drag an item into a SmartBox.
-- Move item between SmartBoxes.
-- Move item back to Other/unboxed.
-- Prevent duplicates.
-- Add a non-drag context menu fallback.
+- Drag item between boxes.
+- Drop item into Other.
+- Visual drop targets.
+- Duplicate prevention.
 
 Exit criteria:
 
-- User can manually organize desktop items in the running app.
+- User can organize items with drag/drop and counts update immediately.
 
-## Sprint 4 — Save and restore
+## Sprint 5 — Visual placement
 
-Goal: make organization persistent.
+Goal: make boxes spatial.
 
 Scope:
 
-- Create layout JSON repository.
-- Save default layout.
-- Auto-save changes.
-- Load layout on startup.
-- Reconcile missing/new desktop files.
-- Add save/load tests.
+- Switch from wrap dashboard to canvas layout.
+- Move SmartBox.
+- Resize SmartBox.
+- Persist placement.
 
 Exit criteria:
 
-- User can organize, close the app, reopen, and see the same layout.
+- User can position SmartBoxes and restart with placement restored.
 
-## Sprint 5 — Desktop behavior
+## Sprint 6 — Desktop overlay and quick hide
 
-Goal: make TidyTop feel like part of the desktop.
-
-Scope:
-
-- Desktop overlay mode.
-- SmartBox move/resize on screen.
-- Normal window vs overlay toggle.
-- Click-through behavior rules.
-- Basic manual Windows smoke tests.
-
-Exit criteria:
-
-- User can place SmartBoxes visually over the desktop without the app feeling like a normal dashboard only.
-
-## Sprint 6 — Quick hide/show and tray
-
-Goal: add daily-use convenience.
+Goal: make it usable as a daily desktop tool.
 
 Scope:
 
-- In-app hide/show.
-- Global Windows hotkey.
+- Overlay mode.
+- Global hotkey.
 - Tray icon.
 - Startup option.
-- Settings UI for hotkey.
 
 Exit criteria:
 
-- User can hide/show TidyTop quickly from keyboard or tray.
+- User can hide/show TidyTop quickly and keep it integrated with the desktop.
 
-## Sprint 7 — v0.1 release candidate
+## Sprint 7 — v0.1 RC
 
-Goal: package the first usable MVP.
+Goal: package and verify.
 
 Scope:
 
-- Version bump.
-- Portable Windows publish.
+- Publish portable Windows build.
 - Installer decision.
 - Release notes.
-- Known issues.
-- Final smoke test.
-
-Exit criteria:
-
-- A clean Windows user can run TidyTop and complete the MVP flow.
+- Manual smoke tests on clean Windows.
