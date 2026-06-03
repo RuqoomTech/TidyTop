@@ -7,43 +7,31 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
-        
+  windows-mvp:
+    runs-on: windows-latest
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
-        
-    - name: Restore dependencies
-      run: dotnet restore
-      
-    - name: Build
-      run: dotnet build --no-restore
-      
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
-      
-    - name: Publish Windows App
-      if: matrix.os == 'windows-latest'
-      run: dotnet publish src/TidyTop.App/TidyTop.App.csproj -c Release -r win-x64 -o ./publish/windows
-      
-    - name: Publish macOS App
-      if: matrix.os == 'macos-latest'
-      run: dotnet publish src/TidyTop.App/TidyTop.App.csproj -c Release -r osx-x64 -o ./publish/macos
-      
-    - name: Publish Linux App
-      if: matrix.os == 'ubuntu-latest'
-      run: dotnet publish src/TidyTop.App/TidyTop.App.csproj -c Release -r linux-x64 -o ./publish/linux
-      
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: published-app-${{ matrix.os }}
-        path: ./publish/
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test --no-build --configuration Release --verbosity normal
+
+      - name: Publish portable Windows build
+        run: dotnet publish src/TidyTop.App/TidyTop.App.csproj --configuration Release --runtime win-x64 --self-contained false --output ./publish/windows
+
+      - name: Upload portable build
+        uses: actions/upload-artifact@v4
+        with:
+          name: tidytop-windows-portable
+          path: ./publish/windows

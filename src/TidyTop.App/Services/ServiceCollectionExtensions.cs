@@ -18,7 +18,7 @@ public static class ServiceCollectionExtensions
         // Register services
         services.AddSingleton<ISettingsService, SettingsService>();
         services.AddSingleton<IDesktopIconService, DesktopIconService>();
-        services.AddSingleton<IFenceService, FenceService>();
+        services.AddSingleton<ISmartBoxService, SmartBoxService>();
         services.AddSingleton<IDesktopLayoutService, DesktopLayoutService>();
 
         return services;

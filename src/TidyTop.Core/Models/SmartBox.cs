@@ -228,7 +228,7 @@ namespace TidyTop.Core.Models
             if (!Icons.Contains(icon))
             {
                 Icons.Add(icon);
-                icon.FenceId = Id;
+                icon.SmartBoxId = Id;
                 ModifiedDate = DateTime.Now;
             }
         }
@@ -240,7 +240,7 @@ namespace TidyTop.Core.Models
         {
             if (Icons.Remove(icon))
             {
-                icon.FenceId = null;
+                icon.SmartBoxId = null;
                 ModifiedDate = DateTime.Now;
             }
         }

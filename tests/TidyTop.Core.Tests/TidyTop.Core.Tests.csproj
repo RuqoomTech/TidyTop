@@ -1,10 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-
+    <TargetFramework>net8.0-windows</TargetFramework>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
@@ -23,5 +19,4 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\TidyTop.Core\TidyTop.Core.csproj" />
   </ItemGroup>
-
 </Project>

@@ -4,40 +4,32 @@ using TidyTop.Core.Models;
 namespace TidyTop.Core.Services;
 
 /// <summary>
-/// Implementation of the desktop layout service
+/// In-memory layout service. Disk persistence is a planned MVP task.
 /// </summary>
 public class DesktopLayoutService : IDesktopLayoutService
 {
     private readonly ConcurrentDictionary<Guid, DesktopLayout> _layouts = new();
-    private readonly IFenceService _fenceService;
+    private readonly ISmartBoxService _smartBoxService;
     private readonly IDesktopIconService _desktopIconService;
     private Guid? _activeLayoutId;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DesktopLayoutService"/> class
-    /// </summary>
-    /// <param name="fenceService">The fence service</param>
-    /// <param name="desktopIconService">The desktop icon service</param>
-    public DesktopLayoutService(IFenceService fenceService, IDesktopIconService desktopIconService)
+    public DesktopLayoutService(ISmartBoxService smartBoxService, IDesktopIconService desktopIconService)
     {
-        _fenceService = fenceService ?? throw new ArgumentNullException(nameof(fenceService));
+        _smartBoxService = smartBoxService ?? throw new ArgumentNullException(nameof(smartBoxService));
         _desktopIconService = desktopIconService ?? throw new ArgumentNullException(nameof(desktopIconService));
     }
 
-    /// <inheritdoc/>
     public Task<IEnumerable<DesktopLayout>> GetLayoutsAsync()
     {
         return Task.FromResult(_layouts.Values.ToList().AsEnumerable());
     }
 
-    /// <inheritdoc/>
     public Task<DesktopLayout?> GetLayoutAsync(Guid id)
     {
         _layouts.TryGetValue(id, out var layout);
         return Task.FromResult(layout);
     }
 
-    /// <inheritdoc/>
     public async Task<DesktopLayout?> GetCurrentLayoutAsync()
     {
         if (_activeLayoutId.HasValue && _layouts.TryGetValue(_activeLayoutId.Value, out var layout))
@@ -45,11 +37,11 @@ public class DesktopLayoutService : IDesktopLayoutService
             return layout;
         }
 
-        // If no active layout is set, create a default one
         var defaultLayout = new DesktopLayout
         {
             Id = Guid.NewGuid(),
             Name = "Default Layout",
+            IsDefault = true,
             CreatedDate = DateTime.Now,
             ModifiedDate = DateTime.Now
         };
@@ -59,106 +51,94 @@ public class DesktopLayoutService : IDesktopLayoutService
         return defaultLayout;
     }
 
-    /// <inheritdoc/>
     public Task<Guid> AddLayoutAsync(DesktopLayout layout)
     {
-        if (layout == null)
-            throw new ArgumentNullException(nameof(layout));
+        ArgumentNullException.ThrowIfNull(layout);
 
         layout.Id = layout.Id == Guid.Empty ? Guid.NewGuid() : layout.Id;
         layout.CreatedDate = layout.CreatedDate == default ? DateTime.Now : layout.CreatedDate;
         layout.ModifiedDate = DateTime.Now;
 
-        var result = _layouts.TryAdd(layout.Id, layout);
-        return Task.FromResult(result ? layout.Id : Guid.Empty);
+        var added = _layouts.TryAdd(layout.Id, layout);
+        return Task.FromResult(added ? layout.Id : Guid.Empty);
     }
 
-    /// <inheritdoc/>
     public Task<bool> UpdateLayoutAsync(DesktopLayout layout)
     {
-        if (layout == null)
-            throw new ArgumentNullException(nameof(layout));
+        ArgumentNullException.ThrowIfNull(layout);
+
+        if (!_layouts.TryGetValue(layout.Id, out var existing))
+        {
+            return Task.FromResult(false);
+        }
 
         layout.ModifiedDate = DateTime.Now;
-        var result = _layouts.TryUpdate(layout.Id, layout, _layouts[layout.Id]);
-        return Task.FromResult(result);
+        return Task.FromResult(_layouts.TryUpdate(layout.Id, layout, existing));
     }
 
-    /// <inheritdoc/>
     public Task<bool> RemoveLayoutAsync(Guid id)
     {
-        var result = _layouts.TryRemove(id, out _);
-        
-        // If this was the active layout, clear it
-        if (result && _activeLayoutId == id)
+        var removed = _layouts.TryRemove(id, out _);
+        if (removed && _activeLayoutId == id)
         {
             _activeLayoutId = null;
         }
 
-        return Task.FromResult(result);
+        return Task.FromResult(removed);
     }
 
-    /// <inheritdoc/>
-    public async Task<bool> SetActiveLayoutAsync(Guid id)
+    public Task<bool> SetActiveLayoutAsync(Guid id)
     {
         if (!_layouts.ContainsKey(id))
-            return false;
+        {
+            return Task.FromResult(false);
+        }
 
         _activeLayoutId = id;
-        
-        // TODO: Implement actual layout restoration logic
-        // This would involve:
-        // 1. Getting the layout from our dictionary
-        // 2. Restoring all fences in the layout
-        // 3. Positioning icons according to the layout
-
-        await Task.CompletedTask;
-        return true;
+        return Task.FromResult(true);
     }
 
-    /// <inheritdoc/>
     public async Task<Guid> SaveCurrentLayoutAsync(string name)
     {
+        var smartBoxes = (await _smartBoxService.GetSmartBoxesAsync()).ToList();
+        var icons = (await _desktopIconService.GetDesktopIconsAsync()).ToList();
+
         var layout = new DesktopLayout
         {
             Id = Guid.NewGuid(),
-            Name = name,
+            Name = string.IsNullOrWhiteSpace(name) ? "Untitled Layout" : name.Trim(),
+            SmartBoxes = smartBoxes,
+            UnboxedIcons = icons.Where(icon => string.IsNullOrWhiteSpace(icon.SmartBoxId)).ToList(),
             CreatedDate = DateTime.Now,
             ModifiedDate = DateTime.Now
         };
 
-        // TODO: Implement actual layout saving logic
-        // This would involve:
-        // 1. Getting all current fences and their positions
-        // 2. Getting all icons and their positions
-        // 3. Storing this information in the layout object
-
         await AddLayoutAsync(layout);
+        await SetActiveLayoutAsync(layout.Id);
         return layout.Id;
     }
 
-    /// <inheritdoc/>
     public async Task<bool> RestoreLayoutAsync(Guid id)
     {
         var layout = await GetLayoutAsync(id);
-        if (layout == null)
+        if (layout is null)
+        {
             return false;
+        }
 
         return await SetActiveLayoutAsync(id);
     }
 
-    /// <inheritdoc/>
     public async Task<Guid> CopyLayoutAsync(Guid id, string newName)
     {
         var originalLayout = await GetLayoutAsync(id);
-        if (originalLayout == null)
+        if (originalLayout is null)
+        {
             return Guid.Empty;
+        }
 
         var copiedLayout = originalLayout.Clone();
-        copiedLayout.Id = Guid.NewGuid();
-        copiedLayout.Name = newName;
-        copiedLayout.CreatedDate = DateTime.Now;
-        copiedLayout.ModifiedDate = DateTime.Now;
+        copiedLayout.Name = string.IsNullOrWhiteSpace(newName) ? $"{originalLayout.Name} Copy" : newName.Trim();
 
         return await AddLayoutAsync(copiedLayout);
     }

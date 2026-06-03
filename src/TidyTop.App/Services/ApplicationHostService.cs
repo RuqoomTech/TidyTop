@@ -45,7 +45,7 @@ public class ApplicationHostService : IHostedService
         // Initialize services that need to be started when the application starts
         var settingsService = _serviceProvider.GetRequiredService<ISettingsService>();
         var desktopIconService = _serviceProvider.GetRequiredService<IDesktopIconService>();
-        var fenceService = _serviceProvider.GetRequiredService<IFenceService>();
+        var smartBoxService = _serviceProvider.GetRequiredService<ISmartBoxService>();
         var desktopLayoutService = _serviceProvider.GetRequiredService<IDesktopLayoutService>();
 
         // TODO: Initialize services as needed

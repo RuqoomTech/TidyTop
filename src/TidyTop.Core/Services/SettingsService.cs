@@ -6,7 +6,7 @@ using TidyTop.Core.Models;
 namespace TidyTop.Core.Services;
 
 /// <summary>
-/// Implementation of the settings service
+/// JSON-backed implementation of the settings service.
 /// </summary>
 public class SettingsService : ISettingsService
 {
@@ -171,32 +171,6 @@ public class SettingsService : ISettingsService
         }
     }
 
-    /// <inheritdoc/>
-    public async Task<bool> ImportLegacySettingsAsync(string filePath)
-    {
-        if (string.IsNullOrEmpty(filePath))
-            throw new ArgumentException("File path cannot be null or empty", nameof(filePath));
-
-        try
-        {
-            // TODO: Implement actual legacy VB.NET settings import logic
-            // This would involve:
-            // 1. Reading the legacy settings file
-            // 2. Parsing the VB.NET settings format
-            // 3. Converting to the new DesktopSettings format
-            // 4. Saving the converted settings
-
-            await Task.CompletedTask;
-            return false;
-        }
-        catch (Exception ex)
-        {
-            // Log the error in a real application
-            Console.WriteLine($"Error importing legacy settings: {ex.Message}");
-            return false;
-        }
-    }
-
     /// <summary>
     /// Gets the default settings
     /// </summary>
@@ -206,9 +180,9 @@ public class SettingsService : ISettingsService
         return new DesktopSettings
         {
             Theme = ApplicationTheme.System,
-            DefaultFenceOpacity = 0.8,
-            DefaultFenceBorderColor = System.Drawing.Color.FromArgb(200, 128, 128, 128),
-            DefaultFenceBackgroundColor = System.Drawing.Color.FromArgb(200, 240, 240, 240),
+            DefaultSmartBoxOpacity = 0.8,
+            DefaultSmartBoxBorderColor = System.Drawing.Color.FromArgb(200, 128, 128, 128),
+            DefaultSmartBoxBackgroundColor = System.Drawing.Color.FromArgb(200, 240, 240, 240),
             EnableQuickHide = true,
             QuickHideHotkey = "Ctrl+Space",
             EnableAutoOrganize = false,

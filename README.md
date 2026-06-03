@@ -1,86 +1,83 @@
 # TidyTop
 
-A modern cross-platform desktop organization application, built with .NET 8 and Avalonia UI.
+TidyTop is a Windows-first desktop organization app built with .NET 8 and Avalonia. The goal is simple: help users group desktop shortcuts and files into clean, visual boxes, then save and restore that layout reliably.
 
-## Overview
+The current repository is an early MVP foundation. It can scan desktop items and display them in starter category boxes, but full desktop icon control, drag/drop placement, persistent layouts, resizing, and hotkeys are still planned work.
 
-TidyTop is a desktop organization application that helps you organize your desktop icons and shortcuts into customizable fenced areas. It allows you to create, resize, and organize containers (fences) on your desktop to group related icons together, reducing clutter and improving productivity.
+## Product direction
 
-## Features
+TidyTop should be positioned as a lightweight desktop organizer, not as a clone of another product. The app should focus on the smallest useful workflow first:
 
-- **Desktop Fences**: Create customizable fenced areas on your desktop
-- **Icon Organization**: Drag and drop icons between fences
-- **Auto-Organization**: Automatically sort icons within fences by name, type, or date
-- **Layout Management**: Save and restore desktop layouts
-- **Quick Hide**: Show/hide fences to reveal a clean desktop
-- **Customization**: Customize fence appearance, colors, and transparency
-- **Cross-platform**: Works on Windows, macOS, and Linux
-- **Rules Engine**: Create rules to automatically place new icons in specific fences
+1. Scan the desktop.
+2. Display real desktop items inside visual boxes.
+3. Let the user create, rename, move, and resize boxes.
+4. Let the user move items between boxes.
+5. Save the layout.
+6. Restore the same layout after restart.
+7. Add a quick hide/show shortcut.
 
-## Technology Stack
+## Current status
 
-- **Framework**: .NET 8
-- **UI Framework**: Avalonia UI
-- **Architecture**: MVVM (Model-View-ViewModel)
-- **Language**: C#
-- **Testing**: xUnit
+| Area | Status |
+| --- | --- |
+| Avalonia shell | Started |
+| Desktop scan | Started |
+| Category display | Started |
+| Real icon rendering | Planned |
+| User-created boxes | Planned |
+| Drag/drop between boxes | Planned |
+| Layout persistence | Planned |
+| Quick hide/show hotkey | Planned |
+| Installer/release packaging | Planned |
 
-## Project Structure
+See [`docs/STATUS.md`](docs/STATUS.md) for the detailed state.
 
-```
+## Tech stack
+
+- .NET 8
+- Avalonia UI
+- C#
+- xUnit
+- Windows-first desktop integration
+
+## Repository structure
+
+```text
 TidyTop/
+├── assets/                    # Brand assets and static images
+├── docs/                      # Product, architecture, roadmap, and task docs
 ├── src/
-│   ├── TidyTop.App/          # Main application project
-│   ├── TidyTop.Core/         # Core business logic
-│   └── TidyTop.Data/         # Data access layer
+│   ├── TidyTop.App/           # Avalonia UI application
+│   └── TidyTop.Core/          # Domain models and core services
 ├── tests/
-│   ├── TidyTop.App.Tests/    # UI and integration tests
-│   └── TidyTop.Core.Tests/   # Unit tests for core logic
-└── docs/                     # Documentation
+│   ├── TidyTop.App.Tests/     # App/view-model level tests
+│   └── TidyTop.Core.Tests/    # Domain and service tests
+├── Directory.Build.props      # Shared .NET build settings
+├── TidyTop.sln                # Visual Studio solution
+└── README.md
 ```
 
-## Building and Running
+## Build
 
-### Prerequisites
-
-- .NET 8 SDK
-- Visual Studio Code or Visual Studio 2022
-
-### Building the Solution
+Prerequisite: .NET 8 SDK.
 
 ```bash
+dotnet restore
 dotnet build
 ```
 
-### Running the Application
+## Run
 
 ```bash
 dotnet run --project src/TidyTop.App/TidyTop.App.csproj
 ```
 
-### Running Tests
+## Test
 
 ```bash
 dotnet test
 ```
 
-## Development
+## Development rule
 
-This project follows a modern development approach with:
-
-- Clean Architecture principles
-- Dependency Injection
-- Unit Testing
-- Continuous Integration
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License.
+Do not mark a feature as complete until it works in the app and has at least one useful test or manual verification note. Keep `docs/STATUS.md` and `docs/roadmap/TASKS.md` updated after each completed task.

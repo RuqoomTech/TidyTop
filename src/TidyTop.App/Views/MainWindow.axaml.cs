@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Threading;
 using System;
 using System.Collections.Generic;
@@ -7,187 +8,267 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace TidyTop.App.Views
-{
+namespace TidyTop.App.Views;
+
 public partial class MainWindow : Window
 {
-        private List<ApplicationInfo> _desktopApps = new();
-        private readonly Dictionary<string, BoxInfo> _boxes = new();
+    private readonly List<DesktopEntry> _desktopEntries = new();
+    private readonly Dictionary<string, CategoryDefinition> _categories = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, List<DesktopEntry>> _groupedEntries = new(StringComparer.OrdinalIgnoreCase);
 
     public MainWindow()
     {
         InitializeComponent();
-            InitializeBoxes();
-            _ = LoadDesktopApplicationsAsync();
-        }
+        InitializeCategories();
+        _ = LoadDesktopEntriesAsync();
+    }
 
-        private void InitializeBoxes()
+    private void InitializeCategories()
+    {
+        _categories["office"] = new CategoryDefinition(
+            "Office & Documents",
+            new[] { ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".pdf", ".odt", ".ods", ".odp" },
+            new[] { "word", "excel", "powerpoint", "office", "acrobat", "reader", "document", "spreadsheet", "presentation" });
+
+        _categories["games"] = new CategoryDefinition(
+            "Games",
+            new[] { ".exe" },
+            new[] { "steam", "epic", "game", "games", "minecraft", "blizzard", "origin", "uplay", "gog" });
+
+        _categories["social"] = new CategoryDefinition(
+            "Web & Communication",
+            new[] { ".url", ".html", ".htm" },
+            new[] { "discord", "telegram", "whatsapp", "skype", "zoom", "teams", "slack", "outlook", "thunderbird", "chrome", "firefox", "edge", "browser" });
+
+        _categories["files"] = new CategoryDefinition(
+            "Files & Folders",
+            new[] { ".txt", ".rtf", ".md", ".zip", ".rar", ".7z", ".png", ".jpg", ".jpeg", ".gif", ".mp4", ".mov", ".avi" },
+            new[] { "folder", "archive", "file", "notepad", "explorer", "winrar", "7zip" });
+    }
+
+    private async Task LoadDesktopEntriesAsync()
+    {
+        try
         {
-            _boxes["office"] = new BoxInfo
+            LoadingOverlay.IsVisible = true;
+            StatusText.Text = "Scanning desktop...";
+
+            var entries = await Task.Run(ScanDesktopEntries);
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                Name = "Office Tools",
-                Icon = "📊",
-                Keywords = new[] { "word", "excel", "powerpoint", "office", "pdf", "acrobat" },
-                Extensions = new[] { ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".pdf" }
-            };
-
-            _boxes["games"] = new BoxInfo
+                _desktopEntries.Clear();
+                _desktopEntries.AddRange(entries);
+                GroupEntries();
+                RenderGroups();
+                LoadingOverlay.IsVisible = false;
+            });
+        }
+        catch (Exception ex)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                Name = "Games",
-                Icon = "🎮",
-                Keywords = new[] { "game", "steam", "epic", "minecraft" },
-                Extensions = new[] { ".exe" }
-            };
-
-            _boxes["social"] = new BoxInfo
-            {
-                Name = "Social & Communication",
-                Icon = "💬",
-                Keywords = new[] { "discord", "telegram", "whatsapp", "chrome", "firefox" },
-                Extensions = new[] { ".url" }
-            };
-
-            _boxes["files"] = new BoxInfo
-            {
-                Name = "Files & Documents",
-                Icon = "📁",
-                Keywords = new[] { "explorer", "notepad", "winrar" },
-                Extensions = new[] { ".txt", ".zip", ".rar" }
-            };
-        }
-
-        private async Task LoadDesktopApplicationsAsync()
-        {
-            try
-            {
-                LoadingOverlay.IsVisible = true;
-                
-                await Task.Run(() =>
-                {
-                    _desktopApps.Clear();
-                    ScanFolder(Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
-                });
-
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    OrganizeApplications();
-                    UpdateStatusText();
-                    LoadingOverlay.IsVisible = false;
-                });
-            }
-            catch (Exception ex)
-            {
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    LoadingOverlay.IsVisible = false;
-                    StatusText.Text = $"❌ Error: {ex.Message}";
-                });
-            }
-        }
-
-        private void ScanFolder(string folderPath)
-        {
-            if (!Directory.Exists(folderPath)) return;
-
-            try
-            {
-                var files = Directory.GetFiles(folderPath)
-                    .Where(f => IsExecutableOrShortcut(f))
-                    .Take(50);
-
-                foreach (var file in files)
-                {
-                    try
-                    {
-                        var app = new ApplicationInfo
-                        {
-                            Name = Path.GetFileNameWithoutExtension(file),
-                            FullPath = file,
-                            Extension = Path.GetExtension(file).ToLowerInvariant()
-                        };
-                        _desktopApps.Add(app);
-                    }
-                    catch { }
-                }
-            }
-            catch { }
-        }
-
-        private static bool IsExecutableOrShortcut(string filePath)
-        {
-            var ext = Path.GetExtension(filePath).ToLowerInvariant();
-            return ext == ".exe" || ext == ".lnk" || ext == ".url";
-        }
-
-        private void OrganizeApplications()
-        {
-            foreach (var app in _desktopApps)
-            {
-                var category = CategorizeApplication(app);
-                if (!string.IsNullOrEmpty(category) && _boxes.ContainsKey(category))
-                {
-                    _boxes[category].Applications.Add(app);
-                }
-            }
-        }
-
-        private string CategorizeApplication(ApplicationInfo app)
-        {
-            var appName = app.Name.ToLowerInvariant();
-
-            foreach (var boxPair in _boxes)
-            {
-                var box = boxPair.Value;
-                if (box.Keywords.Any(keyword => appName.Contains(keyword)))
-                {
-                    return boxPair.Key;
-                }
-                if (box.Extensions.Contains(app.Extension))
-                {
-                    return boxPair.Key;
-                }
-            }
-            return string.Empty;
-        }
-
-        private void UpdateStatusText()
-        {
-            var totalApps = _desktopApps.Count;
-            var organizedApps = _boxes.Values.Sum(b => b.Applications.Count);
-            StatusText.Text = $"📦 {organizedApps}/{totalApps} applications organized";
-        }
-
-        private async void RefreshButton_Click(object? sender, RoutedEventArgs e)
-        {
-            foreach (var box in _boxes.Values)
-                box.Applications.Clear();
-            await LoadDesktopApplicationsAsync();
-        }
-
-        private void AddBoxButton_Click(object? sender, RoutedEventArgs e)
-        {
-            StatusText.Text = "💡 Custom box creation coming soon!";
-        }
-
-        private void SettingsButton_Click(object? sender, RoutedEventArgs e)
-        {
-            StatusText.Text = "⚙️ Settings window coming soon!";
+                LoadingOverlay.IsVisible = false;
+                StatusText.Text = $"Scan failed: {ex.Message}";
+            });
         }
     }
 
-    public class ApplicationInfo
+    private static List<DesktopEntry> ScanDesktopEntries()
     {
-        public string Name { get; set; } = string.Empty;
-        public string FullPath { get; set; } = string.Empty;
-        public string Extension { get; set; } = string.Empty;
+        var results = new Dictionary<string, DesktopEntry>(StringComparer.OrdinalIgnoreCase);
+        var folders = new[]
+        {
+            Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory)
+        };
+
+        foreach (var folder in folders.Where(path => !string.IsNullOrWhiteSpace(path)).Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            if (!Directory.Exists(folder))
+            {
+                continue;
+            }
+
+            foreach (var path in Directory.EnumerateFileSystemEntries(folder).Take(250))
+            {
+                TryAddEntry(results, path);
+            }
+        }
+
+        return results.Values.OrderBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase).ToList();
     }
 
-    public class BoxInfo
+    private static void TryAddEntry(IDictionary<string, DesktopEntry> results, string path)
     {
-        public string Name { get; set; } = string.Empty;
-        public string Icon { get; set; } = string.Empty;
-        public string[] Keywords { get; set; } = Array.Empty<string>();
-        public string[] Extensions { get; set; } = Array.Empty<string>();
-        public List<ApplicationInfo> Applications { get; set; } = new();
+        try
+        {
+            var attributes = File.GetAttributes(path);
+            if (attributes.HasFlag(FileAttributes.Hidden) || attributes.HasFlag(FileAttributes.System))
+            {
+                return;
+            }
+
+            var isDirectory = attributes.HasFlag(FileAttributes.Directory);
+            var extension = isDirectory ? string.Empty : Path.GetExtension(path).ToLowerInvariant();
+            var name = isDirectory ? Path.GetFileName(path) : Path.GetFileNameWithoutExtension(path);
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return;
+            }
+
+            results[path] = new DesktopEntry(
+                name,
+                path,
+                extension,
+                isDirectory,
+                !isDirectory && (extension.Equals(".lnk", StringComparison.OrdinalIgnoreCase) || extension.Equals(".url", StringComparison.OrdinalIgnoreCase)));
+        }
+        catch
+        {
+            // Desktop scans should be best effort. A single inaccessible item must not break the UI.
+        }
+    }
+
+    private void GroupEntries()
+    {
+        _groupedEntries.Clear();
+        foreach (var key in _categories.Keys.Append("other"))
+        {
+            _groupedEntries[key] = new List<DesktopEntry>();
+        }
+
+        foreach (var entry in _desktopEntries)
+        {
+            var category = Categorize(entry);
+            _groupedEntries[category].Add(entry);
+        }
+    }
+
+    private string Categorize(DesktopEntry entry)
+    {
+        if (entry.IsDirectory)
+        {
+            return "files";
+        }
+
+        foreach (var category in _categories)
+        {
+            if (category.Value.Matches(entry))
+            {
+                return category.Key;
+            }
+        }
+
+        return "other";
+    }
+
+    private void RenderGroups()
+    {
+        RenderGroup("office", OfficeItemsPanel, OfficeCountText);
+        RenderGroup("games", GamesItemsPanel, GamesCountText);
+        RenderGroup("social", SocialItemsPanel, SocialCountText);
+        RenderGroup("files", FilesItemsPanel, FilesCountText);
+        RenderGroup("other", OtherItemsPanel, OtherCountText);
+
+        var organized = _groupedEntries.Where(pair => pair.Key != "other").Sum(pair => pair.Value.Count);
+        StatusText.Text = $"{organized}/{_desktopEntries.Count} desktop items grouped. Drag/drop, custom boxes, and persistence are next MVP tasks.";
+    }
+
+    private void RenderGroup(string key, StackPanel panel, TextBlock countText)
+    {
+        panel.Children.Clear();
+        var entries = _groupedEntries.TryGetValue(key, out var group) ? group : new List<DesktopEntry>();
+        countText.Text = entries.Count.ToString();
+
+        if (entries.Count == 0)
+        {
+            panel.Children.Add(CreateEmptyState());
+            return;
+        }
+
+        foreach (var entry in entries.Take(40))
+        {
+            panel.Children.Add(CreateEntryRow(entry));
+        }
+
+        if (entries.Count > 40)
+        {
+            panel.Children.Add(new TextBlock
+            {
+                Text = $"+ {entries.Count - 40} more items",
+                Foreground = new SolidColorBrush(Color.Parse("#FF9EAAB4")),
+                FontSize = 12,
+                Margin = new Avalonia.Thickness(4, 8, 4, 0)
+            });
+        }
+    }
+
+    private static Control CreateEntryRow(DesktopEntry entry)
+    {
+        var icon = entry.IsDirectory ? "📁" : entry.IsShortcut ? "↗️" : "📄";
+        var text = new TextBlock
+        {
+            Text = $"{icon}  {entry.Name}",
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            Foreground = Brushes.White,
+            FontSize = 13,
+            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+        };
+
+        ToolTip.SetTip(text, entry.FullPath);
+
+        return new Border
+        {
+            Background = new SolidColorBrush(Color.Parse("#1AFFFFFF")),
+            CornerRadius = new Avalonia.CornerRadius(8),
+            Padding = new Avalonia.Thickness(9, 7),
+            Child = text
+        };
+    }
+
+    private static Control CreateEmptyState()
+    {
+        return new TextBlock
+        {
+            Text = "No matching desktop items yet.",
+            Foreground = new SolidColorBrush(Color.Parse("#FF9EAAB4")),
+            FontSize = 12,
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Avalonia.Thickness(4)
+        };
+    }
+
+    private async void RefreshButton_Click(object? sender, RoutedEventArgs e)
+    {
+        await LoadDesktopEntriesAsync();
+    }
+
+    private void AddBoxButton_Click(object? sender, RoutedEventArgs e)
+    {
+        StatusText.Text = "Add SmartBox is planned for Milestone 2. The current build focuses on real desktop scan and display.";
+    }
+
+    private async void SettingsButton_Click(object? sender, RoutedEventArgs e)
+    {
+        var settingsWindow = new SettingsWindow();
+        await settingsWindow.ShowDialog(this);
+    }
+
+    private sealed record DesktopEntry(string Name, string FullPath, string Extension, bool IsDirectory, bool IsShortcut);
+
+    private sealed record CategoryDefinition(string Name, string[] Extensions, string[] Keywords)
+    {
+        public bool Matches(DesktopEntry entry)
+        {
+            if (Extensions.Contains(entry.Extension, StringComparer.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            var haystack = $"{entry.Name} {entry.FullPath}".ToLowerInvariant();
+            return Keywords.Any(keyword => haystack.Contains(keyword.ToLowerInvariant(), StringComparison.Ordinal));
+        }
     }
 }
