@@ -1,3 +1,15 @@
+
+## Unreleased — Desktop integration pass
+
+- Added system tray menu.
+- Added show/hide overlay behavior.
+- Added `Ctrl+Alt+T` global quick-hide hotkey.
+- Added safe native Windows desktop icon hide/show.
+- Added restoration of captured native desktop icon visibility on exit.
+- Added desktop integration settings persistence.
+- Added toolbar controls for overlay hide and native icon mode.
+- Updated docs, smoke test, sprint plan, and task backlog.
+
 # Changelog
 
 All notable project changes should be recorded here.

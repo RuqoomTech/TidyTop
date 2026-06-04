@@ -2,6 +2,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform;
+using Avalonia.Threading;
 using TidyTop.App.Services;
 using TidyTop.App.ViewModels;
 
@@ -12,15 +14,30 @@ public partial class MainWindow : Window
     private const double ItemDragThreshold = 8;
 
     private readonly IDesktopOverlayHost _desktopOverlayHost;
+    private readonly INativeDesktopIconService _nativeDesktopIconService;
+    private readonly IGlobalHotkeyService _globalHotkeyService;
     private bool _initialized;
+    private bool _isClosingFromTray;
     private SmartBoxInteraction? _activeInteraction;
     private DesktopItemDrag? _activeItemDrag;
+    private TrayIcon? _trayIcon;
+    private NativeMenuItem? _showHideTrayItem;
+    private NativeMenuItem? _nativeIconsTrayItem;
+    private NativeMenuItem? _refreshTrayItem;
+    private NativeMenuItem? _autoLayoutTrayItem;
 
-    public MainWindow(IDesktopOverlayHost desktopOverlayHost)
+    public MainWindow(
+        IDesktopOverlayHost desktopOverlayHost,
+        INativeDesktopIconService nativeDesktopIconService,
+        IGlobalHotkeyService globalHotkeyService)
     {
         _desktopOverlayHost = desktopOverlayHost;
+        _nativeDesktopIconService = nativeDesktopIconService;
+        _globalHotkeyService = globalHotkeyService;
         InitializeComponent();
         Opened += OnOpened;
+        Closing += OnClosing;
+        Closed += OnClosed;
     }
 
     private async void OnOpened(object? sender, EventArgs e)
@@ -33,10 +50,20 @@ public partial class MainWindow : Window
         _initialized = true;
         ConfigureDesktopBounds();
         _desktopOverlayHost.AttachToDesktop(this);
+        _nativeDesktopIconService.CaptureInitialState();
 
         if (DataContext is MainWindowViewModel viewModel)
         {
             await viewModel.InitializeAsync();
+            ApplyNativeDesktopIconPreference(viewModel.HideNativeDesktopIcons);
+            ConfigureGlobalHotkey(viewModel.EnableGlobalHotkey);
+            ConfigureTrayIcon();
+            RefreshTrayMenuLabels();
+
+            if (viewModel.ShouldStartHidden)
+            {
+                Dispatcher.UIThread.Post(HideTidyTop);
+            }
         }
     }
 
@@ -54,6 +81,200 @@ public partial class MainWindow : Window
         Height = screen.Bounds.Height / screen.Scaling;
     }
 
+    private void ConfigureTrayIcon()
+    {
+        if (_trayIcon is not null)
+        {
+            return;
+        }
+
+        var menu = new NativeMenu();
+
+        _showHideTrayItem = new NativeMenuItem { Header = "Hide TidyTop" };
+        _showHideTrayItem.Click += (_, _) => ToggleTidyTopVisibility();
+        menu.Items.Add(_showHideTrayItem);
+
+        _refreshTrayItem = new NativeMenuItem { Header = "Refresh items" };
+        _refreshTrayItem.Click += async (_, _) => await RunRefreshFromTrayAsync();
+        menu.Items.Add(_refreshTrayItem);
+
+        _autoLayoutTrayItem = new NativeMenuItem { Header = "Auto layout" };
+        _autoLayoutTrayItem.Click += async (_, _) => await RunAutoLayoutFromTrayAsync();
+        menu.Items.Add(_autoLayoutTrayItem);
+
+        _nativeIconsTrayItem = new NativeMenuItem { Header = "Hide native desktop icons" };
+        _nativeIconsTrayItem.Click += async (_, _) => await ToggleNativeDesktopIconsAsync();
+        menu.Items.Add(_nativeIconsTrayItem);
+
+        var exitItem = new NativeMenuItem { Header = "Exit" };
+        exitItem.Click += (_, _) => ExitFromTray();
+        menu.Items.Add(exitItem);
+
+        _trayIcon = new TrayIcon
+        {
+            ToolTipText = "TidyTop",
+            Menu = menu,
+            IsVisible = true
+        };
+
+        TrySetTrayIconImage(_trayIcon);
+    }
+
+    private static void TrySetTrayIconImage(TrayIcon trayIcon)
+    {
+        try
+        {
+            using var stream = AssetLoader.Open(new Uri("avares://TidyTop.App/Assets/logo.png"));
+            trayIcon.Icon = new WindowIcon(stream);
+        }
+        catch
+        {
+            // The tray still works without a custom icon. Packaging should include Assets/logo.png.
+        }
+    }
+
+    private void ConfigureGlobalHotkey(bool enabled)
+    {
+        _globalHotkeyService.ToggleRequested -= OnGlobalHotkeyToggleRequested;
+        _globalHotkeyService.Stop();
+
+        if (!enabled)
+        {
+            return;
+        }
+
+        _globalHotkeyService.ToggleRequested += OnGlobalHotkeyToggleRequested;
+        _globalHotkeyService.Start();
+    }
+
+    private void OnGlobalHotkeyToggleRequested(object? sender, EventArgs e)
+    {
+        Dispatcher.UIThread.Post(ToggleTidyTopVisibility);
+    }
+
+    private void ToggleTidyTopVisibility()
+    {
+        if (DataContext is not MainWindowViewModel viewModel)
+        {
+            return;
+        }
+
+        if (viewModel.IsOverlayVisible)
+        {
+            HideTidyTop();
+        }
+        else
+        {
+            ShowTidyTop();
+        }
+    }
+
+    private void HideTidyTop()
+    {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            viewModel.SetOverlayVisible(false);
+        }
+
+        Hide();
+        RefreshTrayMenuLabels();
+    }
+
+    private void ShowTidyTop()
+    {
+        ConfigureDesktopBounds();
+        Show();
+        _desktopOverlayHost.AttachToDesktop(this);
+
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            viewModel.SetOverlayVisible(true);
+        }
+
+        RefreshTrayMenuLabels();
+    }
+
+    private async Task ToggleNativeDesktopIconsAsync()
+    {
+        if (DataContext is not MainWindowViewModel viewModel)
+        {
+            return;
+        }
+
+        var hideNativeIcons = !viewModel.HideNativeDesktopIcons;
+        ApplyNativeDesktopIconPreference(hideNativeIcons);
+        await viewModel.SetHideNativeDesktopIconsPreferenceAsync(hideNativeIcons);
+        RefreshTrayMenuLabels();
+    }
+
+    private void ApplyNativeDesktopIconPreference(bool hideNativeIcons)
+    {
+        _nativeDesktopIconService.CaptureInitialState();
+        _nativeDesktopIconService.SetIconsVisible(!hideNativeIcons);
+    }
+
+    private void RefreshTrayMenuLabels()
+    {
+        if (DataContext is not MainWindowViewModel viewModel)
+        {
+            return;
+        }
+
+        if (_showHideTrayItem is not null)
+        {
+            _showHideTrayItem.Header = viewModel.IsOverlayVisible ? "Hide TidyTop" : "Show TidyTop";
+        }
+
+        if (_nativeIconsTrayItem is not null)
+        {
+            _nativeIconsTrayItem.Header = viewModel.HideNativeDesktopIcons
+                ? "Show native desktop icons"
+                : "Hide native desktop icons";
+        }
+    }
+
+    private async Task RunRefreshFromTrayAsync()
+    {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            await viewModel.RefreshCommand.ExecuteAsync();
+        }
+    }
+
+    private async Task RunAutoLayoutFromTrayAsync()
+    {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            await viewModel.AutoArrangeAsync((int)Math.Round(ClientSize.Width), (int)Math.Round(ClientSize.Height));
+        }
+    }
+
+    private void ExitFromTray()
+    {
+        _isClosingFromTray = true;
+        Close();
+    }
+
+    private void OnClosing(object? sender, WindowClosingEventArgs e)
+    {
+        // Closing from the window manager should act like Hide for a tray app. The explicit tray
+        // Exit command performs a real shutdown and restores native desktop icons.
+        if (!_isClosingFromTray)
+        {
+            e.Cancel = true;
+            HideTidyTop();
+        }
+    }
+
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        _globalHotkeyService.ToggleRequested -= OnGlobalHotkeyToggleRequested;
+        _globalHotkeyService.Stop();
+        _nativeDesktopIconService.RestoreCapturedState();
+        _trayIcon?.Dispose();
+        _trayIcon = null;
+    }
+
     private async void OnAutoArrangeClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is MainWindowViewModel viewModel)
@@ -61,6 +282,18 @@ public partial class MainWindow : Window
             await viewModel.AutoArrangeAsync((int)Math.Round(ClientSize.Width), (int)Math.Round(ClientSize.Height));
             e.Handled = true;
         }
+    }
+
+    private void OnHideTidyTopClick(object? sender, RoutedEventArgs e)
+    {
+        HideTidyTop();
+        e.Handled = true;
+    }
+
+    private async void OnToggleNativeDesktopIconsClick(object? sender, RoutedEventArgs e)
+    {
+        await ToggleNativeDesktopIconsAsync();
+        e.Handled = true;
     }
 
     private void OnSmartBoxEditClick(object? sender, RoutedEventArgs e)

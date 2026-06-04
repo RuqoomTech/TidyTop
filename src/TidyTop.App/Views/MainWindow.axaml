@@ -324,9 +324,16 @@
                     <TextBlock Text="{Binding SummaryText}" Foreground="#94A3B8" FontSize="10"/>
                 </StackPanel>
                 <Border Background="#253244" Width="1" Height="28" Margin="4,0"/>
+                <StackPanel Spacing="0" VerticalAlignment="Center" MinWidth="132">
+                    <TextBlock Text="Desktop" Foreground="#CBD5E1" FontSize="11" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding DesktopIntegrationText}" Foreground="#94A3B8" FontSize="10"/>
+                </StackPanel>
+                <Border Background="#253244" Width="1" Height="28" Margin="4,0"/>
                 <Button Classes="toolbar-button" Content="Refresh" Command="{Binding RefreshCommand}"/>
                 <Button Classes="toolbar-button" Content="Add box" Command="{Binding AddSmartBoxCommand}"/>
                 <Button Classes="toolbar-button" Content="Auto layout" Click="OnAutoArrangeClick"/>
+                <Button Classes="toolbar-button" Content="{Binding NativeDesktopIconsButtonText}" Click="OnToggleNativeDesktopIconsClick"/>
+                <Button Classes="toolbar-button" Content="{Binding OverlayVisibilityText}" Click="OnHideTidyTopClick"/>
                 <Button Classes="toolbar-button" Content="Save" Command="{Binding SaveLayoutCommand}"/>
                 <Button Classes="toolbar-button" Content="Reset" Command="{Binding ResetLayoutCommand}"/>
             </StackPanel>

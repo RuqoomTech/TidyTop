@@ -16,6 +16,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IDesktopWorkspaceService, DesktopWorkspaceService>();
         services.AddSingleton<IDesktopItemLauncher, DesktopItemLauncher>();
         services.AddSingleton<IDesktopOverlayHost, WindowsDesktopOverlayHost>();
+        services.AddSingleton<INativeDesktopIconService, WindowsNativeDesktopIconService>();
+        services.AddSingleton<IGlobalHotkeyService, WindowsGlobalHotkeyService>();
 
         services.AddTransient<MainWindowViewModel>();
 

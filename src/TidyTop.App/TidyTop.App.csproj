@@ -21,6 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AvaloniaResource Include="..\..\assets\logo.png" Link="Assets\logo.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\TidyTop.Core\TidyTop.Core.csproj" />
   </ItemGroup>
 </Project>

@@ -1,251 +1,39 @@
 # Task Backlog
 
-## Rules
-
-- Keep tasks small enough to verify in one focused session.
-- Update this file after each completed task.
-- Do not mark UI-only placeholders as complete product features.
-- Every core behavior needs a test or a manual verification note.
-
-## Now: Milestone 2 — Manual organization
-
-### M2-01 — Add core item reassignment API
-
-Status: done.
-
-Acceptance criteria:
-
-- Move item from any SmartBox to another SmartBox.
-- Move item to catch-all / Other.
-- Item cannot exist in two boxes at once.
-- Layout auto-saves after successful move.
-- Unit tests cover move, duplicate prevention, and missing item behavior.
-
-### M2-02 — Add UI move command fallback
-
-Status: done.
-
-Current state:
-
-- Item can be dragged from one SmartBox and dropped onto another.
-- Right-click/context-menu fallback can open or move items without drag/drop.
-
-Acceptance criteria:
-
-- Each item row exposes a move action.
-- User can choose target SmartBox.
-- Counts update immediately.
-- Works without drag/drop.
-
-### M2-03 — Persist manual assignments after restart
-
-Status: done for drag-to-box movement.
-
-Acceptance criteria:
-
-- Manual assignment is written to `%APPDATA%/TidyTop/layout.json`.
-- App restart restores the assignment.
-- Deleted desktop files are removed safely on next scan.
-
-## Current: Milestone 2.5 — UI/UX polish
-
-### M2.5-01 — Make overlay visually calmer
-
-Status: done.
-
-Acceptance criteria:
-
-- Remove repeated instruction text from every SmartBox.
-- Hide noisy full paths from rows and keep them in tooltips.
-- Use compact item cards and a cleaner command bar.
-- Keep double-click and Open action discoverable.
-
-### M2.5-02 — Add auto layout
-
-Status: done.
-
-Acceptance criteria:
-
-- Button reflows boxes into balanced desktop columns.
-- Result saves to layout JSON.
-- Boxes keep safe minimum size.
-
-## Next: Milestone 3 — SmartBox CRUD UI
-
-### M3-01 — Create SmartBox dialog
-
-Status: todo.
-
-Acceptance criteria:
-
-- Add SmartBox opens a dialog.
-- User can enter title.
-- Empty title is rejected.
-- Box appears immediately and saves.
-
-### M3-02 — Rename SmartBox
-
-Status: first pass done.
-
-Acceptance criteria:
-
-- User can rename a manual SmartBox.
-- System boxes can be renamed only if we intentionally allow it.
-- Rename persists after restart.
-
-### M3-03 — Delete SmartBox safely
-
-Status: first pass done.
-
-Acceptance criteria:
-
-- User confirms deletion.
-- Items inside deleted SmartBox move to Other.
-- System catch-all cannot be deleted.
-
-### M3-04 — Collapse/expand SmartBox
-
-Status: todo.
-
-Acceptance criteria:
-
-- Collapse shows title and count only.
-- State persists in layout JSON.
-
-## Next: Milestone 4 — Drag/drop polish
-
-### M4-01 — Drag item between boxes
-
-Status: done.
-
-Acceptance criteria:
-
-- Item can move between boxes with drag/drop.
-- Drop targets are visually clear.
-- Counts update immediately.
-
-### M4-02 — Drag item back to Other
-
-Status: done for current MVP.
-
-Acceptance criteria:
-
-- Item can be returned to catch-all.
-- Assignment is removed from previous box.
-
-## Next: Milestone 6 — Native desktop integration
-
-### M6-01 — Safe native icon handling strategy
-
-Status: todo.
-
-Acceptance criteria:
-
-- Decide whether v0.1 hides native Windows desktop icons while TidyTop is running, leaves them visible, or uses another approach.
-- If hiding icons is chosen, app must restore them on normal exit and document recovery steps for crash cases.
-- No destructive file moves.
-
-### M6-02 — Real icon extraction
-
-Status: todo.
-
-Acceptance criteria:
-
-- File/folder/shortcut icons are shown instead of emoji fallback icons.
-- Missing icon extraction falls back safely.
-
-## Later
-
-- Global hotkey.
-- Tray icon.
-- Installer.
-- Release checklist.
-
 ## Done
 
-### D-01 — Remove misleading docs
+- [x] Rewrite product docs around the real Windows-first MVP.
+- [x] Remove stale prototype claims.
+- [x] Replace old Fence vocabulary with SmartBox vocabulary.
+- [x] Scan Desktop items.
+- [x] Persist layout JSON.
+- [x] Render SmartBoxes on a desktop overlay.
+- [x] Move and resize SmartBoxes.
+- [x] Open desktop files and shortcuts.
+- [x] Drag items between SmartBoxes.
+- [x] Add right-click item movement.
+- [x] Rename SmartBoxes.
+- [x] Delete manual SmartBoxes safely.
+- [x] Add system tray menu.
+- [x] Add show/hide overlay behavior.
+- [x] Add `Ctrl+Alt+T` global hotkey.
+- [x] Add safe native desktop icon hide/show.
+- [x] Restore native desktop icon visibility on exit.
 
-Completed in cleanup pass.
+## Next
 
-### D-02 — Move docs into structured docs tree
+- [ ] Build a Settings window/overlay.
+- [ ] Add collapse/expand SmartBox state.
+- [ ] Add lock/unlock layout.
+- [ ] Add first-run onboarding.
+- [ ] Add theme/accent/opacity controls.
+- [ ] Add real startup registration.
+- [ ] Add better multi-monitor handling.
+- [ ] Build installer.
 
-Completed in cleanup pass.
+## Safety backlog
 
-### D-03 — Remove empty Data project
-
-Completed in cleanup pass.
-
-### D-04 — Replace placeholder tests
-
-Completed with initial model/view-model tests.
-
-### D-05 — Rewrite foundation around scoped MVP
-
-Completed in foundation rewrite.
-
-Notes:
-
-- Replaced duplicated icon-in-box model with path-based SmartBox assignments.
-- Added scanner, reconciler, JSON layout store, JSON settings store, workspace service.
-- Replaced code-behind desktop grouping with view-model-bound UI.
-- Added tests for matching, reconciliation, persistence, and main VM behavior.
-
-### D-06 — First desktop overlay pass
-
-Completed in desktop-overlay pass.
-
-Notes:
-
-- Main window is now borderless, transparent, and hidden from the taskbar.
-- Added `IDesktopOverlayHost` and `WindowsDesktopOverlayHost`.
-- Attempts to attach TidyTop to Windows WorkerW/Progman desktop host.
-- Switched SmartBox rendering from WrapPanel to Canvas using saved coordinates.
-- Native Windows desktop icon hiding/replacement is intentionally not done yet.
-
-### D-07 — Visual SmartBox move and resize
-
-Completed in desktop interaction pass.
-
-Notes:
-
-- SmartBox header dragging updates `X` and `Y` in the view model.
-- Bottom-right resize handle updates `Width` and `Height`.
-- Geometry is clamped to safe minimum values.
-- Layout is auto-saved through `IDesktopWorkspaceService.UpdateSmartBoxGeometryAsync(...)` on pointer release.
-- Added tests for core SmartBox geometry clamping.
-
-### D-08 — Open desktop items and basic manual item movement
-
-Completed in item organization pass.
-
-Notes:
-
-- Added `IDesktopItemLauncher` and shell-based launching.
-- Double-clicking an item or pressing Open launches files, folders, `.lnk` shortcuts, and `.url` shortcuts through Windows shell behavior.
-- Added workspace methods for moving an item into a target SmartBox.
-- Added basic drag-to-box item reassignment in the desktop overlay.
-- Layout auto-saves after item movement.
-- Improved the overlay layout with clearer item cards, instructions, and empty-state guidance.
-
-### D-09 — UI/UX polish and auto layout
-
-Completed in UI polish pass.
-
-Notes:
-
-- Reworked the desktop overlay into quieter glass cards.
-- Replaced visible full paths with concise item type/location labels.
-- Added centered toolbar with Auto layout.
-- Added workspace auto-arrange service and tests.
-
-
-### D-09 — Drag/drop polish and SmartBox editor
-
-Completed in drag/drop polish pass.
-
-Notes:
-
-- Added drag ghost, drop-target highlight, and live drop hint.
-- Added item right-click context menu for Open and Move actions.
-- Added SmartBox editor overlay for rename/delete.
-- Deleting a manual SmartBox is non-destructive; desktop files are never removed.
+- [ ] Add a native desktop icon restore watchdog.
+- [ ] Add diagnostics when Explorer desktop host is unavailable.
+- [ ] Add a safe reset command for settings and layout.
+- [ ] Add manual test checklist to release process.

@@ -1,149 +1,67 @@
 # Milestones
 
-## Milestone 0 — Repository cleanup
+## Milestone 0 — Honest foundation
 
 Status: done.
 
-Goal: make the repository truthful and organized.
+- Clean docs.
+- Windows-first scope.
+- SmartBox vocabulary.
+- Removed stale clone-style claims.
 
-Delivered:
+## Milestone 1 — Real workspace
 
-- Accurate docs tree.
-- Empty Data project removed.
-- Old clone/migration framing removed.
-- SmartBox vocabulary standardized.
-- Initial tests added.
+Status: done.
 
-## Milestone 1 — Foundation rewrite
+- Scan Desktop items.
+- Group into SmartBoxes.
+- Persist layout.
+- Reconcile new/deleted desktop items.
 
-Status: done in this rewrite pass.
+## Milestone 2 — Desktop overlay
 
-Goal: make the codebase match the MVP scope.
+Status: done.
 
-Delivered:
+- Transparent borderless desktop surface.
+- WorkerW/Progman desktop host attachment.
+- Canvas-positioned SmartBoxes.
 
-- `DesktopItem`, `SmartBox`, `DesktopLayout`, and `DesktopWorkspace` models.
-- Path-based stable item identity.
-- Desktop scanner.
-- Default rule-based SmartBoxes.
-- Catch-all box.
-- Layout reconciliation.
-- JSON layout persistence.
-- JSON settings store.
-- View-model driven Avalonia UI.
-- Service-level manual SmartBox creation.
-- Expanded tests.
+## Milestone 3 — Organization UX
 
-Success check:
+Status: done.
 
-- Run the app on Windows.
-- Real desktop items appear in SmartBoxes.
-- Press Refresh and the scan reconciles the layout.
-- Press Add SmartBox and a manual box appears.
-- Restart should load from `%APPDATA%/TidyTop/layout.json`.
+- Open items.
+- Drag items between boxes.
+- Right-click move actions.
+- Rename/delete manual SmartBoxes.
+- Auto layout.
 
-## Milestone 2 — Manual organization
+## Milestone 4 — Desktop integration
 
-Goal: let users actually organize items.
+Status: done as first pass.
 
-Deliverables:
+- Tray icon/menu.
+- Show/hide overlay.
+- `Ctrl+Alt+T` quick-hide hotkey.
+- Safe native desktop icon hide/show.
+- Restore captured native desktop icon visibility on exit.
 
-- Move item to SmartBox command.
-- Move item back to Other / Unboxed.
-- Prevent duplicate assignments.
-- Context-menu fallback before drag/drop if needed.
-- Auto-save after assignment changes.
-- Tests for move/reassign/remove behavior.
+## Milestone 5 — Settings and safety
 
-Success check:
+Status: next.
 
-- User can move one desktop item from Other to a manual box and restart with the assignment preserved.
+- Settings window.
+- First-run Safe Mode / Managed Mode explanation.
+- Collapse/expand boxes.
+- Lock/unlock layout.
+- Startup registration.
+- Better error messages when Explorer desktop host is unavailable.
 
-## Milestone 3 — SmartBox CRUD UI
+## Milestone 6 — Release candidate
 
-Goal: make boxes manageable.
+Status: later.
 
-Deliverables:
-
-- Create SmartBox dialog.
-- Rename SmartBox.
-- Delete SmartBox safely.
-- Collapse/expand SmartBox.
-- Simple color/accent selector.
-
-Success check:
-
-- User can create a box named “Work”, rename it, collapse it, delete it, and keep a valid layout.
-
-## Milestone 4 — Visual layout controls
-
-Goal: make SmartBoxes feel like movable desktop objects.
-
-Delivered foundation:
-
-- SmartBoxes render on a canvas.
-- Saved X/Y/width/height controls initial placement.
-
-Remaining deliverables:
-
-- Move SmartBox on canvas.
-- Resize SmartBox.
-- Persist changed X/Y/width/height from UI actions.
-- Add grid/snapping later only if needed.
-
-Success check:
-
-- User can place SmartBoxes visually and restart with placement restored.
-
-## Milestone 5 — Desktop integration behavior
-
-Goal: make the app feel like a desktop layer, not a dashboard.
-
-Delivered foundation:
-
-- First desktop overlay mode.
-- Borderless transparent window.
-- WorkerW/Progman desktop-host attachment attempt.
-
-Remaining deliverables:
-
-- Normal window vs overlay toggle.
-- Click-through rules.
-- Safe native desktop icon strategy.
-- Manual Windows smoke tests.
-
-Success check:
-
-- User can keep boxes over the desktop without breaking normal desktop use.
-
-## Milestone 6 — Quick hide/show and tray
-
-Goal: add daily convenience.
-
-Deliverables:
-
-- In-app hide/show command.
-- Global Windows hotkey.
-- Tray icon.
-- Startup option.
-
-Success check:
-
-- User can instantly hide/show TidyTop from keyboard or tray.
-
-## Milestone 7 — v0.1 release candidate
-
-Goal: package first usable Windows MVP.
-
-Deliverables:
-
-- Portable Windows publish.
-- Installer decision.
-- Release notes.
-- Known issues.
-- Smoke test checklist.
-
-
-## Completed — Desktop overlay foundation
-
-First pass complete: borderless transparent desktop surface, WorkerW/Progman attachment attempt, and canvas-based SmartBox placement. Remaining work: drag/resize boxes, native icon strategy, tray/hotkeys.
+- Installer.
+- Multi-monitor verification.
+- Crash-safety checks.
+- Basic release notes and versioning.

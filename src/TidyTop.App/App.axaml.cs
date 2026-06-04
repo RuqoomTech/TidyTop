@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using TidyTop.App.Services;
 using TidyTop.App.ViewModels;
 using TidyTop.App.Views;
+using TidyTop.Core.Services;
 
 namespace TidyTop.App;
 
@@ -23,7 +24,10 @@ public sealed partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.ShutdownMode = ShutdownMode.OnMainWindowClose;
-            desktop.MainWindow = new MainWindow(Services.GetRequiredService<IDesktopOverlayHost>())
+            desktop.MainWindow = new MainWindow(
+                Services.GetRequiredService<IDesktopOverlayHost>(),
+                Services.GetRequiredService<INativeDesktopIconService>(),
+                Services.GetRequiredService<IGlobalHotkeyService>())
             {
                 DataContext = Services.GetRequiredService<MainWindowViewModel>()
             };

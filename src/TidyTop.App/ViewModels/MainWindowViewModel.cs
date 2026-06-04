@@ -10,7 +10,13 @@ public sealed class MainWindowViewModel : ViewModelBase
 {
     private readonly IDesktopWorkspaceService _workspaceService;
     private readonly IDesktopItemLauncher _desktopItemLauncher;
+    private readonly IAppSettingsStore _settingsStore;
     private bool _hasLoaded;
+    private AppSettings _settings = new();
+    private bool _isOverlayVisible = true;
+    private bool _hideNativeDesktopIcons;
+    private bool _enableGlobalHotkey = true;
+    private string _globalHotkey = "Ctrl+Alt+T";
     private int _totalItemCount;
     private int _organizedItemCount;
     private int _boxCount;
@@ -25,10 +31,14 @@ public sealed class MainWindowViewModel : ViewModelBase
     private string _editingSmartBoxSubtitle = string.Empty;
     private bool _editingSmartBoxCanDelete;
 
-    public MainWindowViewModel(IDesktopWorkspaceService workspaceService, IDesktopItemLauncher desktopItemLauncher)
+    public MainWindowViewModel(
+        IDesktopWorkspaceService workspaceService,
+        IDesktopItemLauncher desktopItemLauncher,
+        IAppSettingsStore settingsStore)
     {
         _workspaceService = workspaceService;
         _desktopItemLauncher = desktopItemLauncher;
+        _settingsStore = settingsStore;
         RefreshCommand = new AsyncRelayCommand(RefreshAsync);
         AddSmartBoxCommand = new AsyncRelayCommand(AddSmartBoxAsync);
         ResetLayoutCommand = new AsyncRelayCommand(ResetLayoutAsync);
@@ -71,6 +81,52 @@ public sealed class MainWindowViewModel : ViewModelBase
         get => _boxCount;
         private set => this.RaiseAndSetIfChanged(ref _boxCount, value);
     }
+
+    public bool IsOverlayVisible
+    {
+        get => _isOverlayVisible;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _isOverlayVisible, value);
+            RaiseDesktopIntegrationPropertiesChanged();
+        }
+    }
+
+    public bool HideNativeDesktopIcons
+    {
+        get => _hideNativeDesktopIcons;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _hideNativeDesktopIcons, value);
+            RaiseDesktopIntegrationPropertiesChanged();
+        }
+    }
+
+    public bool EnableGlobalHotkey
+    {
+        get => _enableGlobalHotkey;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _enableGlobalHotkey, value);
+            RaiseDesktopIntegrationPropertiesChanged();
+        }
+    }
+
+    public string GlobalHotkey
+    {
+        get => _globalHotkey;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _globalHotkey, value);
+            RaiseDesktopIntegrationPropertiesChanged();
+        }
+    }
+
+    public string OverlayVisibilityText => IsOverlayVisible ? "Hide" : "Show";
+    public string NativeDesktopIconsButtonText => HideNativeDesktopIcons ? "Show icons" : "Hide icons";
+    public string NativeDesktopIconsModeText => HideNativeDesktopIcons ? "Managed icons" : "Safe mode";
+    public string HotkeyStatusText => EnableGlobalHotkey ? GlobalHotkey : "Hotkey off";
+    public string DesktopIntegrationText => $"{NativeDesktopIconsModeText} • {HotkeyStatusText}";
 
     public bool IsDraggingItem
     {
@@ -140,7 +196,46 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
 
         _hasLoaded = true;
+        await LoadSettingsAsync();
         await LoadAsync();
+    }
+
+    private async Task LoadSettingsAsync()
+    {
+        try
+        {
+            _settings = await _settingsStore.LoadAsync();
+            HideNativeDesktopIcons = _settings.HideNativeDesktopIcons;
+            EnableGlobalHotkey = _settings.EnableGlobalHotkey;
+            GlobalHotkey = string.IsNullOrWhiteSpace(_settings.GlobalHotkey) ? "Ctrl+Alt+T" : _settings.GlobalHotkey;
+            IsOverlayVisible = !_settings.StartHidden;
+        }
+        catch (Exception ex)
+        {
+            Fail($"Could not load settings: {ex.Message}");
+        }
+    }
+
+    public bool ShouldStartHidden => _settings.StartHidden;
+
+    public void SetOverlayVisible(bool isVisible)
+    {
+        IsOverlayVisible = isVisible;
+    }
+
+    public async Task SetHideNativeDesktopIconsPreferenceAsync(bool hideNativeDesktopIcons)
+    {
+        HideNativeDesktopIcons = hideNativeDesktopIcons;
+        _settings.HideNativeDesktopIcons = hideNativeDesktopIcons;
+        await _settingsStore.SaveAsync(_settings);
+        StatusMessage = hideNativeDesktopIcons
+            ? "Managed mode enabled. Native desktop icons are hidden while TidyTop runs."
+            : "Safe mode enabled. Native desktop icons are visible.";
+    }
+
+    public async Task ToggleHideNativeDesktopIconsPreferenceAsync()
+    {
+        await SetHideNativeDesktopIconsPreferenceAsync(!HideNativeDesktopIcons);
     }
 
     private async Task LoadAsync()
@@ -405,6 +500,15 @@ public sealed class MainWindowViewModel : ViewModelBase
         {
             Fail($"TidyTop could not update the workspace: {ex.Message}");
         }
+    }
+
+    private void RaiseDesktopIntegrationPropertiesChanged()
+    {
+        this.RaisePropertyChanged(nameof(OverlayVisibilityText));
+        this.RaisePropertyChanged(nameof(NativeDesktopIconsButtonText));
+        this.RaisePropertyChanged(nameof(NativeDesktopIconsModeText));
+        this.RaisePropertyChanged(nameof(HotkeyStatusText));
+        this.RaisePropertyChanged(nameof(DesktopIntegrationText));
     }
 
     private void ApplyWorkspace(DesktopWorkspace workspace)

@@ -1,42 +1,44 @@
 # Desktop Overlay Smoke Test
 
-Run this on Windows after every change to the desktop-hosting code.
+Run these manually on Windows after every desktop integration change.
 
-## Preconditions
+## Build
 
-- Windows Explorer is running normally.
-- The desktop has at least a few visible files/shortcuts.
-- Build succeeds with `dotnet build`.
+```powershell
+dotnet restore
+dotnet build
+dotnet test
+dotnet run --project src/TidyTop.App/TidyTop.App.csproj
+```
 
-## Test steps
+## Overlay behavior
 
-1. Start the app:
+1. TidyTop opens on the desktop without a normal window border.
+2. It does not appear as a normal taskbar window.
+3. SmartBoxes appear over the wallpaper.
+4. Drag a SmartBox header; position should save.
+5. Resize a SmartBox; size should save.
+6. Restart TidyTop; geometry should restore.
 
-   ```powershell
-   dotnet run --project src/TidyTop.App/TidyTop.App.csproj
-   ```
+## Item behavior
 
-2. Confirm TidyTop does not appear as a normal taskbar app window.
-3. Confirm SmartBoxes are drawn directly over the desktop/wallpaper area.
-4. Confirm the compact floating toolbar appears at the top-center.
-5. Press **Refresh** and confirm item counts update without crashing.
-6. Press **Add box** and confirm a new SmartBox appears on the desktop surface.
-7. Press **Auto layout** and confirm boxes reflow into clean columns without overlap.
-8. Drag a SmartBox header and confirm the box moves smoothly.
-9. Drag the bottom-right resize handle and confirm the box resizes without becoming too small.
-10. Double-click an item, or press its **Open** button, and confirm the file/folder/shortcut opens through Windows.
-11. Drag an item from one SmartBox and release it over another SmartBox; confirm it moves and counts update.
-12. Close the app, run it again, and confirm the moved/resized layout and item assignment load from disk.
-13. Open a normal application window and confirm it appears above TidyTop.
-14. Minimize all normal windows and confirm TidyTop is visible again on the desktop.
+1. Double-click a desktop item; it should open.
+2. Use the compact launch button; the item should open.
+3. Drag an item from one SmartBox to another; drop target should highlight.
+4. Restart TidyTop; the item should remain in the new SmartBox.
+5. Right-click an item and move it through the context menu.
 
-## Known limitations for this pass
+## Desktop integration behavior
 
-- Native Windows desktop icons are not hidden or replaced yet.
-- Item drag/drop has no polished visual drop highlight yet.
-- There is no tray icon or global hide/show hotkey yet.
-- Multi-monitor behavior is not final; the first pass sizes to the primary screen.
+1. Check the tray area for the TidyTop icon.
+2. Use tray menu → Hide TidyTop; overlay should disappear.
+3. Use tray menu → Show TidyTop; overlay should reappear.
+4. Press `Ctrl+Alt+T`; overlay should toggle.
+5. Use the toolbar or tray menu to hide native desktop icons.
+6. Verify desktop files are still present in File Explorer.
+7. Use the toolbar or tray menu to show native desktop icons again.
+8. Exit TidyTop from the tray menu; native desktop icons should restore to their captured launch state.
 
-## Recovery note
+## Safety rule
 
-This pass should not hide native desktop icons, so closing TidyTop should not require any recovery action. If a future task adds icon hiding, that task must include automatic restore and documented manual recovery steps.
+TidyTop must never delete, move, rename, or rewrite real Desktop files during this smoke test.

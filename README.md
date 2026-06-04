@@ -93,3 +93,24 @@ dotnet test
 ## Development rule
 
 Do not mark a feature as complete unless it is wired into the app and covered by tests or a written manual verification note. Keep `docs/STATUS.md` and `docs/roadmap/TASKS.md` updated after each completed task.
+
+## Current Desktop Integration
+
+TidyTop now runs as a Windows-first desktop overlay with a tray menu and quick-hide behavior.
+
+- Double-click or launch desktop items from SmartBoxes.
+- Drag items between SmartBoxes.
+- Move and resize SmartBoxes.
+- Use the tray menu to show/hide TidyTop, refresh items, run auto layout, toggle native desktop icons, or exit.
+- Press `Ctrl+Alt+T` to quickly show/hide the overlay.
+- Managed mode hides the native Windows desktop icon view while TidyTop runs; it does not move or delete Desktop files.
+
+Run locally:
+
+```powershell
+dotnet restore
+dotnet build
+dotnet test
+dotnet run --project src/TidyTop.App/TidyTop.App.csproj
+```
+

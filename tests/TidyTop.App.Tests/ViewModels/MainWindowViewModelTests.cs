@@ -11,7 +11,8 @@ public class MainWindowViewModelTests
     {
         var service = new FakeWorkspaceService(CreateWorkspace());
         var launcher = new FakeDesktopItemLauncher();
-        var viewModel = new MainWindowViewModel(service, launcher);
+        var settingsStore = new FakeAppSettingsStore();
+        var viewModel = new MainWindowViewModel(service, launcher, settingsStore);
 
         await viewModel.InitializeAsync();
 
@@ -22,11 +23,47 @@ public class MainWindowViewModelTests
     }
 
     [Fact]
+    public async Task InitializeAsync_LoadsDesktopIntegrationSettings()
+    {
+        var service = new FakeWorkspaceService(CreateWorkspace());
+        var launcher = new FakeDesktopItemLauncher();
+        var settingsStore = new FakeAppSettingsStore(new AppSettings
+        {
+            HideNativeDesktopIcons = true,
+            EnableGlobalHotkey = true,
+            GlobalHotkey = "Ctrl+Alt+T"
+        });
+        var viewModel = new MainWindowViewModel(service, launcher, settingsStore);
+
+        await viewModel.InitializeAsync();
+
+        Assert.True(viewModel.HideNativeDesktopIcons);
+        Assert.Equal("Managed icons", viewModel.NativeDesktopIconsModeText);
+        Assert.Contains("Ctrl+Alt+T", viewModel.DesktopIntegrationText);
+    }
+
+    [Fact]
+    public async Task SetHideNativeDesktopIconsPreferenceAsync_PersistsSetting()
+    {
+        var service = new FakeWorkspaceService(CreateWorkspace());
+        var launcher = new FakeDesktopItemLauncher();
+        var settingsStore = new FakeAppSettingsStore();
+        var viewModel = new MainWindowViewModel(service, launcher, settingsStore);
+
+        await viewModel.InitializeAsync();
+        await viewModel.SetHideNativeDesktopIconsPreferenceAsync(true);
+
+        Assert.True(settingsStore.LastSaved?.HideNativeDesktopIcons == true);
+        Assert.Equal("Show icons", viewModel.NativeDesktopIconsButtonText);
+    }
+
+    [Fact]
     public async Task AddSmartBoxCommand_RefreshesFromService()
     {
         var service = new FakeWorkspaceService(CreateWorkspace());
         var launcher = new FakeDesktopItemLauncher();
-        var viewModel = new MainWindowViewModel(service, launcher);
+        var settingsStore = new FakeAppSettingsStore();
+        var viewModel = new MainWindowViewModel(service, launcher, settingsStore);
 
         await viewModel.InitializeAsync();
         await viewModel.AddSmartBoxCommand.ExecuteAsync();
@@ -39,7 +76,8 @@ public class MainWindowViewModelTests
     {
         var service = new FakeWorkspaceService(CreateWorkspace());
         var launcher = new FakeDesktopItemLauncher();
-        var viewModel = new MainWindowViewModel(service, launcher);
+        var settingsStore = new FakeAppSettingsStore();
+        var viewModel = new MainWindowViewModel(service, launcher, settingsStore);
 
         await viewModel.InitializeAsync();
         await viewModel.OpenDesktopItemAsync(viewModel.SmartBoxes.Single().Items.Single());
@@ -52,7 +90,8 @@ public class MainWindowViewModelTests
     {
         var service = new FakeWorkspaceService(CreateWorkspace(extraBoxes: 1));
         var launcher = new FakeDesktopItemLauncher();
-        var viewModel = new MainWindowViewModel(service, launcher);
+        var settingsStore = new FakeAppSettingsStore();
+        var viewModel = new MainWindowViewModel(service, launcher, settingsStore);
 
         await viewModel.InitializeAsync();
         var item = viewModel.SmartBoxes[0].Items.Single();
@@ -71,7 +110,8 @@ public class MainWindowViewModelTests
     {
         var service = new FakeWorkspaceService(CreateWorkspace());
         var launcher = new FakeDesktopItemLauncher();
-        var viewModel = new MainWindowViewModel(service, launcher);
+        var settingsStore = new FakeAppSettingsStore();
+        var viewModel = new MainWindowViewModel(service, launcher, settingsStore);
 
         await viewModel.InitializeAsync();
         viewModel.OpenSmartBoxEditor(viewModel.SmartBoxes.Single());
@@ -87,7 +127,8 @@ public class MainWindowViewModelTests
     {
         var service = new FakeWorkspaceService(CreateWorkspace(extraBoxes: 1));
         var launcher = new FakeDesktopItemLauncher();
-        var viewModel = new MainWindowViewModel(service, launcher);
+        var settingsStore = new FakeAppSettingsStore();
+        var viewModel = new MainWindowViewModel(service, launcher, settingsStore);
 
         await viewModel.InitializeAsync();
         var item = viewModel.SmartBoxes[0].Items.Single();
@@ -225,6 +266,30 @@ public class MainWindowViewModelTests
 
         public Task SaveAsync(CancellationToken cancellationToken = default)
         {
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class FakeAppSettingsStore : IAppSettingsStore
+    {
+        private AppSettings _settings;
+
+        public FakeAppSettingsStore(AppSettings? settings = null)
+        {
+            _settings = settings ?? new AppSettings();
+        }
+
+        public AppSettings? LastSaved { get; private set; }
+
+        public Task<AppSettings> LoadAsync(CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(_settings);
+        }
+
+        public Task SaveAsync(AppSettings settings, CancellationToken cancellationToken = default)
+        {
+            LastSaved = settings;
+            _settings = settings;
             return Task.CompletedTask;
         }
     }

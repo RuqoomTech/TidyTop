@@ -1,153 +1,66 @@
 # Sprint Plan
 
-## Sprint 0 — Cleanup and truth reset
+## Completed Foundation Sprints
 
-Status: done.
+### Sprint 1 — Core workspace foundation
 
-Scope:
+- Desktop item model.
+- SmartBox model.
+- Rule-based grouping.
+- Layout persistence.
+- Settings persistence foundation.
 
-- Rewrite docs.
-- Remove empty Data project.
-- Remove misleading completed claims.
-- Align language around SmartBox.
+### Sprint 2 — Desktop overlay foundation
 
-## Sprint 1 — Foundation rewrite
+- Borderless transparent overlay.
+- Windows desktop host attachment.
+- Canvas-based SmartBox positioning.
 
-Status: done in this pass.
+### Sprint 3 — SmartBox interactions
 
-Scope:
+- Move SmartBoxes.
+- Resize SmartBoxes.
+- Persist geometry.
+- Auto layout.
 
-- Replace old mixed models with clean domain models.
-- Move categorization/reconciliation into Core.
-- Add layout JSON persistence.
-- Add settings JSON store.
-- Replace code-behind rendering with view-model binding.
-- Add tests for the foundation.
+### Sprint 4 — Item organization
 
-Exit criteria:
+- Open desktop items.
+- Drag items between SmartBoxes.
+- Right-click move menu.
+- SmartBox rename/delete editor.
 
-- App loads real desktop items into SmartBoxes.
-- Layout is saved to JSON.
-- New/deleted items reconcile safely.
-- Tests cover the core behavior.
+### Sprint 5 — Desktop integration
 
-## Sprint 2 — Item movement
+- System tray menu.
+- Show/hide overlay.
+- `Ctrl+Alt+T` global quick-hide hotkey.
+- Safe native desktop icon hide/show.
+- Restore captured native icon visibility on exit.
+- Persist desktop integration settings.
 
-Status: first pass done.
+## Next Sprint — Settings and polish
 
-Goal: make manual organization real.
+Goal: make the new desktop integration understandable and safe for normal users.
 
-Completed scope:
+Tasks:
 
-- Added core methods for moving items between boxes.
-- Added shell launcher so double-click opens files, folders, shortcuts, and URLs.
-- Added drag item to another SmartBox.
-- Auto-save after item move.
-- Added tests for app-level launch/move behavior.
+1. Add a Settings overlay/window.
+2. Let the user toggle:
+   - Start hidden.
+   - Hide native desktop icons while running.
+   - Enable global hotkey.
+   - Run on startup placeholder.
+3. Add collapse/expand per SmartBox.
+4. Add lock/unlock layout.
+5. Add first-run onboarding explaining Safe Mode vs Managed Mode.
+6. Improve tray icon asset and packaging.
 
-Remaining polish:
+## Release candidate sprint
 
-- Add right-click move fallback.
-- Add visual drop-target highlight.
-- Add explicit move-to-Other command.
-
-Exit criteria:
-
-- User can manually assign an item to a box and see it survive restart.
-
-## Sprint 2.5 — UI/UX polish
-
-Status: done in UI polish pass.
-
-Scope:
-
-- Calm glass-card SmartBox UI.
-- Compact item rows.
-- Remove noisy full-path display from item rows.
-- Add centered command bar.
-- Add Auto layout action.
-
-Exit criteria:
-
-- The overlay feels cleaner on a real desktop wallpaper.
-- User can fix messy box placement with one button.
-
-## Sprint 3 — SmartBox CRUD UI
-
-Goal: make manual boxes useful.
-
-Scope:
-
-- Create SmartBox dialog.
-- Rename SmartBox.
-- Delete SmartBox.
-- Collapse/expand SmartBox.
-- Simple accent color picker.
-
-Exit criteria:
-
-- User can manage boxes without editing JSON.
-
-## Sprint 4 — Drag/drop polish
-
-Goal: make organization feel natural.
-
-Scope:
-
-- Improve visual drag ghost/drop target feedback.
-- Drop item into Other explicitly.
-- Add duplicate-prevention tests at the service level.
-- Add keyboard/context-menu fallback.
-
-Exit criteria:
-
-- User can organize items with drag/drop and clear visual feedback.
-
-## Sprint 5 — Visual placement
-
-Status: done in desktop interaction pass.
-
-Goal: make boxes spatial.
-
-Completed scope:
-
-- SmartBoxes render on a canvas.
-- Saved placement values drive first render.
-- User can drag a SmartBox header to move it.
-- User can drag the bottom-right handle to resize it.
-- Placement changes are persisted to layout JSON on pointer release.
-
-Exit criteria:
-
-- User can position SmartBoxes and restart with placement restored.
-
-## Sprint 6 — Desktop integration and quick hide
-
-Goal: make it usable as a daily desktop tool.
-
-Already done:
-
-- First desktop overlay surface.
-
-Scope remaining:
-
-- Normal window vs overlay toggle.
-- Safe native desktop icon strategy.
-- Global hotkey.
-- Tray icon.
-- Startup option.
-
-Exit criteria:
-
-- User can hide/show TidyTop quickly and keep it integrated with the desktop.
-
-## Sprint 7 — v0.1 RC
-
-Goal: package and verify.
-
-Scope:
-
-- Publish portable Windows build.
-- Installer decision.
-- Release notes.
-- Manual smoke tests on clean Windows.
+1. Installer.
+2. Uninstall cleanup guidance.
+3. Startup registration.
+4. Crash/exit safety checks.
+5. Multi-monitor smoke tests.
+6. Versioned release notes.
