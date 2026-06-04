@@ -4,14 +4,19 @@ namespace TidyTop.App.ViewModels;
 
 public sealed class DesktopItemViewModel
 {
-    public DesktopItemViewModel(DesktopItem item)
+    public DesktopItemViewModel(DesktopItem item, Guid smartBoxId, string smartBoxTitle)
     {
         Item = item;
+        SmartBoxId = smartBoxId;
+        SmartBoxTitle = smartBoxTitle;
     }
 
     public DesktopItem Item { get; }
+    public Guid SmartBoxId { get; }
+    public string SmartBoxTitle { get; }
     public string Name => Item.Name;
     public string FullPath => Item.FullPath;
+    public string NormalizedPath => Item.NormalizedPath;
     public string Extension => Item.Extension;
     public string Icon => Item.Type switch
     {

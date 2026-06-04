@@ -23,13 +23,16 @@ Run this on Windows after every change to the desktop-hosting code.
 6. Press **Add** and confirm a new SmartBox appears on the desktop surface.
 7. Drag a SmartBox header and confirm the box moves smoothly.
 8. Drag the bottom-right resize handle and confirm the box resizes without becoming too small.
-9. Close the app, run it again, and confirm the moved/resized layout loads from disk.
-10. Open a normal application window and confirm it appears above TidyTop.
-11. Minimize all normal windows and confirm TidyTop is visible again on the desktop.
+9. Double-click an item, or press its **Open** button, and confirm the file/folder/shortcut opens through Windows.
+10. Drag an item from one SmartBox and release it over another SmartBox; confirm it moves and counts update.
+11. Close the app, run it again, and confirm the moved/resized layout and item assignment load from disk.
+12. Open a normal application window and confirm it appears above TidyTop.
+13. Minimize all normal windows and confirm TidyTop is visible again on the desktop.
 
 ## Known limitations for this pass
 
 - Native Windows desktop icons are not hidden or replaced yet.
+- Item drag/drop has no polished visual drop highlight yet.
 - There is no tray icon or global hide/show hotkey yet.
 - Multi-monitor behavior is not final; the first pass sizes to the primary screen.
 

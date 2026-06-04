@@ -4,7 +4,7 @@ Last updated: 2026-06-04
 
 ## Honest summary
 
-TidyTop is now a cleaner MVP foundation with a first Windows desktop-overlay pass. The app scans real desktop items, reconciles them into SmartBoxes, persists layout JSON, renders SmartBoxes on a transparent canvas attached to the desktop host when possible, and now supports moving/resizing SmartBoxes directly on the desktop.
+TidyTop is now a cleaner MVP foundation with a first Windows desktop-overlay pass. The app scans real desktop items, reconciles them into SmartBoxes, persists layout JSON, renders SmartBoxes on a transparent canvas attached to the desktop host when possible, supports moving/resizing SmartBoxes directly on the desktop, opens desktop items through the OS shell, and supports basic drag-to-box item reassignment.
 
 ## What works now
 
@@ -26,16 +26,18 @@ TidyTop is now a cleaner MVP foundation with a first Windows desktop-overlay pas
 | Visual SmartBox movement | Implemented: drag a SmartBox header to move it. |
 | Visual SmartBox resizing | Implemented: drag the bottom-right handle to resize it. |
 | Geometry autosave | Implemented: move/resize commits to `%APPDATA%/TidyTop/layout.json` on pointer release. |
+| Item launching | Implemented: double-click an item or press Open to launch file/folder/shortcut/URL through the OS shell. |
+| Manual item movement | Implemented first pass: drag an item from one SmartBox and drop it onto another. Assignment auto-saves. |
 | Manual SmartBox creation | Service and button create a basic manual SmartBox. No dialog yet. |
-| Tests | Meaningful first tests exist for rules, layout, persistence, reconciliation, and app VM. |
+| Tests | Meaningful first tests exist for rules, layout, persistence, reconciliation, item launching, movement, and app VM. |
 
 ## What does not work yet
 
 | Capability | State |
 | --- | --- |
 | Rename/delete SmartBox from UI | Not implemented. |
-| Drag/drop an item into a SmartBox | Not implemented. |
-| Move item between SmartBoxes | Not implemented. |
+| Drag/drop an item into a SmartBox | Implemented first pass; still needs visual drop highlight and context-menu fallback. |
+| Move item between SmartBoxes | Implemented first pass with drag-to-box and autosave. |
 | Native desktop icon hiding/replacement | Not implemented; Windows desktop icons may still exist behind/above the TidyTop surface. |
 | Real file/shortcut icon extraction | Not implemented; emoji/fallback icons are used. |
 | Global hotkeys | Not implemented. |
@@ -47,10 +49,10 @@ TidyTop is now a cleaner MVP foundation with a first Windows desktop-overlay pas
 
 The biggest risk is assuming the overlay is already a complete Fences-like replacement. The next proof should be:
 
-1. create or rename a SmartBox,
-2. move an item into it,
-3. save automatically,
-4. restart and see the same assignment.
+1. make item drag/drop visually clearer,
+2. add a right-click move fallback,
+3. create/rename/delete SmartBoxes from UI,
+4. decide safe native Windows desktop icon handling.
 
 ## Definition of done for v0.1
 

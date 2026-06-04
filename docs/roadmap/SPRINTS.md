@@ -33,15 +33,23 @@ Exit criteria:
 
 ## Sprint 2 — Item movement
 
-Goal: make manual organization real. This is now the highest-priority next sprint after visual placement.
+Status: first pass done.
 
-Scope:
+Goal: make manual organization real.
 
-- Add core methods for moving items between boxes.
-- Add command on item row: Move to box.
-- Add command on item row: Move to Other.
+Completed scope:
+
+- Added core methods for moving items between boxes.
+- Added shell launcher so double-click opens files, folders, shortcuts, and URLs.
+- Added drag item to another SmartBox.
 - Auto-save after item move.
-- Add tests for reassignment.
+- Added tests for app-level launch/move behavior.
+
+Remaining polish:
+
+- Add right-click move fallback.
+- Add visual drop-target highlight.
+- Add explicit move-to-Other command.
 
 Exit criteria:
 
@@ -63,20 +71,20 @@ Exit criteria:
 
 - User can manage boxes without editing JSON.
 
-## Sprint 4 — Drag/drop
+## Sprint 4 — Drag/drop polish
 
 Goal: make organization feel natural.
 
 Scope:
 
-- Drag item between boxes.
-- Drop item into Other.
-- Visual drop targets.
-- Duplicate prevention.
+- Improve visual drag ghost/drop target feedback.
+- Drop item into Other explicitly.
+- Add duplicate-prevention tests at the service level.
+- Add keyboard/context-menu fallback.
 
 Exit criteria:
 
-- User can organize items with drag/drop and counts update immediately.
+- User can organize items with drag/drop and clear visual feedback.
 
 ## Sprint 5 — Visual placement
 

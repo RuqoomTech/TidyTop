@@ -36,7 +36,7 @@ public sealed class SmartBoxViewModel : ReactiveObject
         _width = snapshot.SmartBox.Width;
         _height = snapshot.SmartBox.Height;
         AccentBrush = ToBrush(snapshot.SmartBox.AccentColor);
-        Items = new ObservableCollection<DesktopItemViewModel>(snapshot.Items.Select(item => new DesktopItemViewModel(item)));
+        Items = new ObservableCollection<DesktopItemViewModel>(snapshot.Items.Select(item => new DesktopItemViewModel(item, Id, Title)));
     }
 
     public Guid Id { get; }
@@ -48,6 +48,8 @@ public sealed class SmartBoxViewModel : ReactiveObject
     public IBrush AccentBrush { get; }
     public ObservableCollection<DesktopItemViewModel> Items { get; }
     public int ItemCount => Items.Count;
+    public bool HasItems => ItemCount > 0;
+    public bool IsEmpty => ItemCount == 0;
 
     public string Title
     {
@@ -106,7 +108,7 @@ public sealed class SmartBoxViewModel : ReactiveObject
     public bool IsInteracting => IsBeingMoved || IsBeingResized;
 
     public string EmptyText => Behavior == nameof(SmartBoxBehavior.Manual)
-        ? "Empty manual box. Drag/drop assignment is planned next."
+        ? "Drop desktop items here to organize them."
         : "No matching desktop items.";
 
     public void BeginMove()

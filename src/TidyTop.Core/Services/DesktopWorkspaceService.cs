@@ -90,6 +90,76 @@ public sealed class DesktopWorkspaceService : IDesktopWorkspaceService
         await _layoutStore.SaveAsync(_layout, cancellationToken);
     }
 
+    public async Task<DesktopWorkspace> MoveItemToSmartBoxAsync(
+        string itemPath,
+        Guid targetSmartBoxId,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(itemPath))
+        {
+            throw new ArgumentException("Desktop item path cannot be empty.", nameof(itemPath));
+        }
+
+        _layout ??= await _layoutStore.LoadAsync(cancellationToken) ?? DefaultSmartBoxFactory.CreateDefaultLayout();
+        if (_lastItems.Count == 0)
+        {
+            _lastItems = await _scanner.ScanAsync(cancellationToken);
+        }
+
+        var normalizedPath = DesktopItem.NormalizePath(itemPath);
+        var targetBox = _layout.FindBox(targetSmartBoxId);
+        if (targetBox is null)
+        {
+            throw new InvalidOperationException("The target SmartBox no longer exists.");
+        }
+
+        RemoveItemFromAllBoxes(normalizedPath);
+        targetBox.AssignPath(normalizedPath);
+
+        _layout.UpdatedUtc = DateTimeOffset.UtcNow;
+        var workspace = _reconciler.Reconcile(_layout, _lastItems);
+        await _layoutStore.SaveAsync(workspace.Layout, cancellationToken);
+        return workspace;
+    }
+
+    public async Task<DesktopWorkspace> MoveItemToUnboxedAsync(string itemPath, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(itemPath))
+        {
+            throw new ArgumentException("Desktop item path cannot be empty.", nameof(itemPath));
+        }
+
+        _layout ??= await _layoutStore.LoadAsync(cancellationToken) ?? DefaultSmartBoxFactory.CreateDefaultLayout();
+        if (_lastItems.Count == 0)
+        {
+            _lastItems = await _scanner.ScanAsync(cancellationToken);
+        }
+
+        var normalizedPath = DesktopItem.NormalizePath(itemPath);
+        RemoveItemFromAllBoxes(normalizedPath);
+
+        var catchAll = _layout.SmartBoxes.FirstOrDefault(box => box.Behavior == SmartBoxBehavior.CatchAll);
+        catchAll?.AssignPath(normalizedPath);
+
+        _layout.UpdatedUtc = DateTimeOffset.UtcNow;
+        var workspace = _reconciler.Reconcile(_layout, _lastItems);
+        await _layoutStore.SaveAsync(workspace.Layout, cancellationToken);
+        return workspace;
+    }
+
+    private void RemoveItemFromAllBoxes(string normalizedPath)
+    {
+        if (_layout is null)
+        {
+            return;
+        }
+
+        foreach (var box in _layout.SmartBoxes)
+        {
+            box.RemovePath(normalizedPath);
+        }
+    }
+
     public async Task SaveAsync(CancellationToken cancellationToken = default)
     {
         if (_layout is not null)

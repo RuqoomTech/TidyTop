@@ -10,7 +10,8 @@ public class MainWindowViewModelTests
     public async Task InitializeAsync_LoadsSmartBoxesAndUpdatesSummary()
     {
         var service = new FakeWorkspaceService(CreateWorkspace());
-        var viewModel = new MainWindowViewModel(service);
+        var launcher = new FakeDesktopItemLauncher();
+        var viewModel = new MainWindowViewModel(service, launcher);
 
         await viewModel.InitializeAsync();
 
@@ -24,12 +25,43 @@ public class MainWindowViewModelTests
     public async Task AddSmartBoxCommand_RefreshesFromService()
     {
         var service = new FakeWorkspaceService(CreateWorkspace());
-        var viewModel = new MainWindowViewModel(service);
+        var launcher = new FakeDesktopItemLauncher();
+        var viewModel = new MainWindowViewModel(service, launcher);
 
         await viewModel.InitializeAsync();
         await viewModel.AddSmartBoxCommand.ExecuteAsync();
 
         Assert.Equal(2, viewModel.BoxCount);
+    }
+
+    [Fact]
+    public async Task OpenDesktopItemAsync_UsesShellLauncher()
+    {
+        var service = new FakeWorkspaceService(CreateWorkspace());
+        var launcher = new FakeDesktopItemLauncher();
+        var viewModel = new MainWindowViewModel(service, launcher);
+
+        await viewModel.InitializeAsync();
+        await viewModel.OpenDesktopItemAsync(viewModel.SmartBoxes.Single().Items.Single());
+
+        Assert.Equal(@"C:\Desktop\Report.pdf", launcher.LastPath);
+    }
+
+    [Fact]
+    public async Task MoveDesktopItemToSmartBoxAsync_RefreshesWorkspace()
+    {
+        var service = new FakeWorkspaceService(CreateWorkspace(extraBoxes: 1));
+        var launcher = new FakeDesktopItemLauncher();
+        var viewModel = new MainWindowViewModel(service, launcher);
+
+        await viewModel.InitializeAsync();
+        var item = viewModel.SmartBoxes[0].Items.Single();
+        var target = viewModel.SmartBoxes[1];
+
+        await viewModel.MoveDesktopItemToSmartBoxAsync(item, target);
+
+        Assert.Equal(target.Id, service.LastMoveTargetId);
+        Assert.Contains("Moved", viewModel.StatusMessage);
     }
 
     private static DesktopWorkspace CreateWorkspace(int extraBoxes = 0)
@@ -47,13 +79,18 @@ public class MainWindowViewModelTests
         var box = new SmartBox { Title = "Office", Emoji = "📊", Behavior = SmartBoxBehavior.Manual };
         box.AssignItem(item);
 
+        var layout = new DesktopLayout();
+        layout.SmartBoxes.Add(box);
+
         var snapshots = new List<SmartBoxSnapshot> { new(box, new[] { item }) };
         for (var i = 0; i < extraBoxes; i++)
         {
-            snapshots.Add(new SmartBoxSnapshot(new SmartBox { Title = $"Manual {i + 1}" }, Array.Empty<DesktopItem>()));
+            var extraBox = new SmartBox { Title = $"Manual {i + 1}", X = 400 + (i * 30), Y = 24 + (i * 30) };
+            layout.SmartBoxes.Add(extraBox);
+            snapshots.Add(new SmartBoxSnapshot(extraBox, Array.Empty<DesktopItem>()));
         }
 
-        return new DesktopWorkspace(new DesktopLayout { SmartBoxes = { box } }, new[] { item }, snapshots);
+        return new DesktopWorkspace(layout, new[] { item }, snapshots);
     }
 
     private sealed class FakeWorkspaceService : IDesktopWorkspaceService
@@ -64,6 +101,8 @@ public class MainWindowViewModelTests
         {
             _workspace = workspace;
         }
+
+        public Guid? LastMoveTargetId { get; private set; }
 
         public Task<DesktopWorkspace> LoadAsync(CancellationToken cancellationToken = default)
         {
@@ -94,8 +133,36 @@ public class MainWindowViewModelTests
             return Task.CompletedTask;
         }
 
+        public Task<DesktopWorkspace> MoveItemToSmartBoxAsync(string itemPath, Guid targetSmartBoxId, CancellationToken cancellationToken = default)
+        {
+            LastMoveTargetId = targetSmartBoxId;
+            return Task.FromResult(_workspace);
+        }
+
+        public Task<DesktopWorkspace> MoveItemToUnboxedAsync(string itemPath, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(_workspace);
+        }
+
         public Task SaveAsync(CancellationToken cancellationToken = default)
         {
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class FakeDesktopItemLauncher : IDesktopItemLauncher
+    {
+        public string? LastPath { get; private set; }
+
+        public Task LaunchAsync(DesktopItem item, CancellationToken cancellationToken = default)
+        {
+            LastPath = item.FullPath;
+            return Task.CompletedTask;
+        }
+
+        public Task LaunchAsync(string path, CancellationToken cancellationToken = default)
+        {
+            LastPath = path;
             return Task.CompletedTask;
         }
     }

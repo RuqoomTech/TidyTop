@@ -9,14 +9,16 @@ namespace TidyTop.App.ViewModels;
 public sealed class MainWindowViewModel : ViewModelBase
 {
     private readonly IDesktopWorkspaceService _workspaceService;
+    private readonly IDesktopItemLauncher _desktopItemLauncher;
     private bool _hasLoaded;
     private int _totalItemCount;
     private int _organizedItemCount;
     private int _boxCount;
 
-    public MainWindowViewModel(IDesktopWorkspaceService workspaceService)
+    public MainWindowViewModel(IDesktopWorkspaceService workspaceService, IDesktopItemLauncher desktopItemLauncher)
     {
         _workspaceService = workspaceService;
+        _desktopItemLauncher = desktopItemLauncher;
         RefreshCommand = new AsyncRelayCommand(RefreshAsync);
         AddSmartBoxCommand = new AsyncRelayCommand(AddSmartBoxAsync);
         ResetLayoutCommand = new AsyncRelayCommand(ResetLayoutAsync);
@@ -97,6 +99,55 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
     }
 
+
+    public async Task OpenDesktopItemAsync(DesktopItemViewModel desktopItem)
+    {
+        ArgumentNullException.ThrowIfNull(desktopItem);
+
+        try
+        {
+            StatusMessage = $"Opening {desktopItem.Name}...";
+            await _desktopItemLauncher.LaunchAsync(desktopItem.Item);
+            StatusMessage = $"Opened {desktopItem.Name}.";
+        }
+        catch (Exception ex)
+        {
+            Fail($"Could not open {desktopItem.Name}: {ex.Message}");
+        }
+    }
+
+    public async Task MoveDesktopItemToSmartBoxAsync(DesktopItemViewModel desktopItem, SmartBoxViewModel targetSmartBox)
+    {
+        ArgumentNullException.ThrowIfNull(desktopItem);
+        ArgumentNullException.ThrowIfNull(targetSmartBox);
+
+        if (desktopItem.SmartBoxId == targetSmartBox.Id)
+        {
+            StatusMessage = $"{desktopItem.Name} is already in {targetSmartBox.Title}.";
+            return;
+        }
+
+        try
+        {
+            BeginBusy($"Moving {desktopItem.Name} to {targetSmartBox.Title}...");
+            var workspace = await _workspaceService.MoveItemToSmartBoxAsync(desktopItem.FullPath, targetSmartBox.Id);
+            ApplyWorkspace(workspace);
+            EndBusy($"Moved {desktopItem.Name} to {targetSmartBox.Title}.");
+        }
+        catch (Exception ex)
+        {
+            Fail($"Could not move {desktopItem.Name}: {ex.Message}");
+        }
+    }
+
+    public SmartBoxViewModel? FindSmartBoxAt(double x, double y)
+    {
+        return SmartBoxes
+            .Where(box => box.IsVisible)
+            .Where(box => x >= box.X && x <= box.X + box.Width && y >= box.Y && y <= box.Y + box.Height)
+            .OrderByDescending(box => box.X + box.Y)
+            .FirstOrDefault();
+    }
 
     public async Task CommitSmartBoxGeometryAsync(SmartBoxViewModel smartBox)
     {

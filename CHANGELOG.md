@@ -6,6 +6,10 @@ All notable project changes should be recorded here.
 
 ### Added
 
+- Desktop item shell launching: double-click an item or press Open to launch files, folders, `.lnk` shortcuts, and `.url` shortcuts.
+- Basic manual item movement: drag an item from one SmartBox and drop it onto another SmartBox.
+- Workspace item reassignment API with autosave.
+- Cleaner overlay layout with clearer item rows, drop instructions, empty-state guidance, and improved toolbar/status panels.
 - SmartBox desktop interactions: drag the header to move a box and drag the bottom-right handle to resize it.
 - Geometry autosave via `UpdateSmartBoxGeometryAsync`, writing SmartBox placement back to layout JSON on pointer release.
 - Core SmartBox geometry clamping with minimum width/height.
@@ -44,9 +48,9 @@ All notable project changes should be recorded here.
 
 ### Not complete yet
 
-- Manual item movement between boxes.
+- Right-click/context-menu fallback for item movement.
 - Rename/delete SmartBox UI.
-- Drag/drop.
+- Polished drag/drop visuals and drop-target highlight.
 - Full Fences-like native desktop icon hiding/replacement behavior.
 - Global quick hide/show hotkey.
 - Tray icon.

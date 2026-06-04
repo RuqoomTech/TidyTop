@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using TidyTop.App.Services;
 using TidyTop.App.ViewModels;
 
@@ -8,9 +9,12 @@ namespace TidyTop.App.Views;
 
 public partial class MainWindow : Window
 {
+    private const double ItemDragThreshold = 8;
+
     private readonly IDesktopOverlayHost _desktopOverlayHost;
     private bool _initialized;
     private SmartBoxInteraction? _activeInteraction;
+    private DesktopItemDrag? _activeItemDrag;
 
     public MainWindow(IDesktopOverlayHost desktopOverlayHost)
     {
@@ -62,6 +66,11 @@ public partial class MainWindow : Window
 
     private void BeginSmartBoxInteraction(object? sender, PointerPressedEventArgs e, SmartBoxInteractionMode mode)
     {
+        if (_activeItemDrag is not null)
+        {
+            return;
+        }
+
         if (sender is not Control control || control.DataContext is not SmartBoxViewModel smartBox)
         {
             return;
@@ -179,6 +188,120 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void OnDesktopItemOpenClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: DesktopItemViewModel desktopItem } && DataContext is MainWindowViewModel viewModel)
+        {
+            await viewModel.OpenDesktopItemAsync(desktopItem);
+            e.Handled = true;
+        }
+    }
+
+    private async void OnDesktopItemDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is Control { DataContext: DesktopItemViewModel desktopItem } && DataContext is MainWindowViewModel viewModel)
+        {
+            await viewModel.OpenDesktopItemAsync(desktopItem);
+            e.Handled = true;
+        }
+    }
+
+    private void OnDesktopItemPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (_activeInteraction is not null || IsInsideButton(e.Source))
+        {
+            return;
+        }
+
+        if (sender is not Control control || control.DataContext is not DesktopItemViewModel desktopItem)
+        {
+            return;
+        }
+
+        var pointerPoint = e.GetCurrentPoint(this);
+        if (!pointerPoint.Properties.IsLeftButtonPressed)
+        {
+            return;
+        }
+
+        _activeItemDrag = new DesktopItemDrag(desktopItem, pointerPoint.Position, false);
+        e.Pointer.Capture(control);
+    }
+
+    private void OnDesktopItemPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_activeItemDrag is null)
+        {
+            return;
+        }
+
+        var pointerPoint = e.GetCurrentPoint(this);
+        if (!pointerPoint.Properties.IsLeftButtonPressed)
+        {
+            return;
+        }
+
+        var delta = pointerPoint.Position - _activeItemDrag.StartPointer;
+        if (!_activeItemDrag.IsDragging && Math.Sqrt((delta.X * delta.X) + (delta.Y * delta.Y)) >= ItemDragThreshold)
+        {
+            _activeItemDrag = _activeItemDrag with { IsDragging = true };
+        }
+
+        e.Handled = true;
+    }
+
+    private async void OnDesktopItemPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        e.Handled = await FinishDesktopItemDragAsync(e.Pointer, e.GetPosition(this));
+    }
+
+    private void OnDesktopItemPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+    {
+        _activeItemDrag = null;
+    }
+
+    private async Task<bool> FinishDesktopItemDragAsync(IPointer? pointer, Point releasePosition)
+    {
+        if (_activeItemDrag is null)
+        {
+            return false;
+        }
+
+        var drag = _activeItemDrag;
+        _activeItemDrag = null;
+        pointer?.Capture(null);
+
+        if (!drag.IsDragging || DataContext is not MainWindowViewModel viewModel)
+        {
+            return false;
+        }
+
+        var targetBox = viewModel.FindSmartBoxAt(releasePosition.X, releasePosition.Y);
+        if (targetBox is null || targetBox.Id == drag.DesktopItem.SmartBoxId)
+        {
+            return true;
+        }
+
+        await viewModel.MoveDesktopItemToSmartBoxAsync(drag.DesktopItem, targetBox);
+        return true;
+    }
+
+    private static bool IsInsideButton(object? source)
+    {
+        var current = source as Control;
+        while (current is not null)
+        {
+            if (current is Button)
+            {
+                return true;
+            }
+
+            current = current.Parent as Control;
+        }
+
+        return false;
+    }
+
     private int ClampX(int x, int boxWidth)
     {
         var max = Math.Max(0, (int)Math.Round(ClientSize.Width) - Math.Min(boxWidth, 80));
@@ -211,6 +334,11 @@ public partial class MainWindow : Window
         int StartWidth,
         int StartHeight,
         SmartBoxInteractionMode Mode);
+
+    private sealed record DesktopItemDrag(
+        DesktopItemViewModel DesktopItem,
+        Point StartPointer,
+        bool IsDragging);
 
     private enum SmartBoxInteractionMode
     {

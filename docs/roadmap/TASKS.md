@@ -11,7 +11,7 @@
 
 ### M2-01 — Add core item reassignment API
 
-Status: todo.
+Status: done.
 
 Acceptance criteria:
 
@@ -23,7 +23,12 @@ Acceptance criteria:
 
 ### M2-02 — Add UI move command fallback
 
-Status: todo.
+Status: partially done.
+
+Current state:
+
+- Item can be dragged from one SmartBox and dropped onto another.
+- Right-click/context-menu fallback is still todo.
 
 Acceptance criteria:
 
@@ -34,7 +39,7 @@ Acceptance criteria:
 
 ### M2-03 — Persist manual assignments after restart
 
-Status: todo.
+Status: done for drag-to-box movement.
 
 Acceptance criteria:
 
@@ -84,11 +89,11 @@ Acceptance criteria:
 - Collapse shows title and count only.
 - State persists in layout JSON.
 
-## Next: Milestone 4 — Drag/drop
+## Next: Milestone 4 — Drag/drop polish
 
 ### M4-01 — Drag item between boxes
 
-Status: todo.
+Status: first pass done.
 
 Acceptance criteria:
 
@@ -98,7 +103,7 @@ Acceptance criteria:
 
 ### M4-02 — Drag item back to Other
 
-Status: todo.
+Status: first pass works when dropping onto the Other / Unboxed box; still needs stronger visual feedback.
 
 Acceptance criteria:
 
@@ -185,3 +190,16 @@ Notes:
 - Geometry is clamped to safe minimum values.
 - Layout is auto-saved through `IDesktopWorkspaceService.UpdateSmartBoxGeometryAsync(...)` on pointer release.
 - Added tests for core SmartBox geometry clamping.
+
+### D-08 — Open desktop items and basic manual item movement
+
+Completed in item organization pass.
+
+Notes:
+
+- Added `IDesktopItemLauncher` and shell-based launching.
+- Double-clicking an item or pressing Open launches files, folders, `.lnk` shortcuts, and `.url` shortcuts through Windows shell behavior.
+- Added workspace methods for moving an item into a target SmartBox.
+- Added basic drag-to-box item reassignment in the desktop overlay.
+- Layout auto-saves after item movement.
+- Improved the overlay layout with clearer item cards, instructions, and empty-state guidance.

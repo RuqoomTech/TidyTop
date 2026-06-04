@@ -22,7 +22,10 @@ This rewrite makes the repository match the real MVP scope:
 - Windows desktop overlay host: borderless transparent desktop surface attached to WorkerW/Progman when possible
 - canvas-based SmartBox placement using saved X/Y/width/height values
 - visual SmartBox move/resize with autosaved geometry on pointer release
-- tests for rules, SmartBoxes, layout cloning, reconciliation, layout JSON round trip, and main view-model loading
+- double-click desktop items or press Open to launch files, folders, shortcuts, and URLs through the OS shell
+- drag an item from one SmartBox and drop it onto another SmartBox to manually reassign it
+- improved desktop overlay layout with clearer item rows, drop guidance, and status feedback
+- tests for rules, SmartBoxes, layout cloning, reconciliation, layout JSON round trip, item launching, manual movement, and main view-model loading
 
 ## MVP product loop
 
@@ -36,7 +39,7 @@ The v0.1 loop is:
 6. Restore layout on restart.
 7. Add quick hide/show.
 
-The current rewrite completes the foundation for steps 1, 2, 3, 5, and 6 at the service/model level, and now includes the first Windows desktop-overlay pass. Manual item movement/drag-drop and native icon handling are the next major pieces.
+The current version completes the foundation for steps 1, 2, 3, 4, 5, and 6 at the service/model level, includes the first Windows desktop-overlay pass, supports visual SmartBox movement/resizing, supports double-click item launching, and includes basic drag-to-box manual reassignment. Native icon handling, rename/delete UI, tray, and hotkeys are the next major pieces.
 
 ## Tech stack
 
