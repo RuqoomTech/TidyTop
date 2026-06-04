@@ -6,6 +6,11 @@ All notable project changes should be recorded here.
 
 ### Added
 
+- Drag/drop polish pass: item drag ghost, drop-target highlight, and live target hint.
+- Right-click item context menu with Open, Move to SmartBox, and Move to Other / Unboxed actions.
+- SmartBox editor overlay for rename/delete; manual SmartBoxes can be deleted safely and system boxes are rename-only.
+- Workspace APIs for renaming and deleting SmartBoxes with layout autosave.
+- Tests for SmartBox rename/delete and drag-state visual feedback.
 - UI/UX polish pass: cleaner glass SmartBox cards, quieter headers, compact item rows, hidden raw paths, centered command bar, and improved status panel.
 - Auto layout action that spaces SmartBoxes into balanced desktop columns and saves the result.
 - Better first-run default SmartBox positions that avoid top-left clutter and toolbar overlap.
@@ -52,9 +57,6 @@ All notable project changes should be recorded here.
 
 ### Not complete yet
 
-- Right-click/context-menu fallback for item movement.
-- Rename/delete SmartBox UI.
-- Polished drag/drop visuals and drop-target highlight.
 - Full Fences-like native desktop icon hiding/replacement behavior.
 - Global quick hide/show hotkey.
 - Tray icon.

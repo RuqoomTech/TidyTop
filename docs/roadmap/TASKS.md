@@ -23,12 +23,12 @@ Acceptance criteria:
 
 ### M2-02 — Add UI move command fallback
 
-Status: partially done.
+Status: done.
 
 Current state:
 
 - Item can be dragged from one SmartBox and dropped onto another.
-- Right-click/context-menu fallback is still todo.
+- Right-click/context-menu fallback can open or move items without drag/drop.
 
 Acceptance criteria:
 
@@ -85,7 +85,7 @@ Acceptance criteria:
 
 ### M3-02 — Rename SmartBox
 
-Status: todo.
+Status: first pass done.
 
 Acceptance criteria:
 
@@ -95,7 +95,7 @@ Acceptance criteria:
 
 ### M3-03 — Delete SmartBox safely
 
-Status: todo.
+Status: first pass done.
 
 Acceptance criteria:
 
@@ -116,7 +116,7 @@ Acceptance criteria:
 
 ### M4-01 — Drag item between boxes
 
-Status: first pass done.
+Status: done.
 
 Acceptance criteria:
 
@@ -126,7 +126,7 @@ Acceptance criteria:
 
 ### M4-02 — Drag item back to Other
 
-Status: first pass works when dropping onto the Other / Unboxed box; still needs stronger visual feedback.
+Status: done for current MVP.
 
 Acceptance criteria:
 
@@ -237,3 +237,15 @@ Notes:
 - Replaced visible full paths with concise item type/location labels.
 - Added centered toolbar with Auto layout.
 - Added workspace auto-arrange service and tests.
+
+
+### D-09 — Drag/drop polish and SmartBox editor
+
+Completed in drag/drop polish pass.
+
+Notes:
+
+- Added drag ghost, drop-target highlight, and live drop hint.
+- Added item right-click context menu for Open and Move actions.
+- Added SmartBox editor overlay for rename/delete.
+- Deleting a manual SmartBox is non-destructive; desktop files are never removed.

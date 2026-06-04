@@ -59,6 +59,61 @@ public sealed class DesktopWorkspaceService : IDesktopWorkspaceService
         return workspace;
     }
 
+
+    public async Task<DesktopWorkspace> RenameSmartBoxAsync(
+        Guid smartBoxId,
+        string title,
+        CancellationToken cancellationToken = default)
+    {
+        _layout ??= await _layoutStore.LoadAsync(cancellationToken) ?? DefaultSmartBoxFactory.CreateDefaultLayout();
+        if (_lastItems.Count == 0)
+        {
+            _lastItems = await _scanner.ScanAsync(cancellationToken);
+        }
+
+        var smartBox = _layout.FindBox(smartBoxId);
+        if (smartBox is null)
+        {
+            throw new InvalidOperationException("The SmartBox no longer exists.");
+        }
+
+        var cleanedTitle = string.IsNullOrWhiteSpace(title) ? "Untitled SmartBox" : title.Trim();
+        smartBox.Title = cleanedTitle.Length > 48 ? cleanedTitle[..48] : cleanedTitle;
+        smartBox.UpdatedUtc = DateTimeOffset.UtcNow;
+        _layout.UpdatedUtc = DateTimeOffset.UtcNow;
+
+        var workspace = _reconciler.Reconcile(_layout, _lastItems);
+        await _layoutStore.SaveAsync(workspace.Layout, cancellationToken);
+        return workspace;
+    }
+
+    public async Task<DesktopWorkspace> DeleteSmartBoxAsync(Guid smartBoxId, CancellationToken cancellationToken = default)
+    {
+        _layout ??= await _layoutStore.LoadAsync(cancellationToken) ?? DefaultSmartBoxFactory.CreateDefaultLayout();
+        if (_lastItems.Count == 0)
+        {
+            _lastItems = await _scanner.ScanAsync(cancellationToken);
+        }
+
+        var smartBox = _layout.FindBox(smartBoxId);
+        if (smartBox is null)
+        {
+            throw new InvalidOperationException("The SmartBox no longer exists.");
+        }
+
+        if (smartBox.IsSystemBox)
+        {
+            throw new InvalidOperationException("Default SmartBoxes cannot be deleted yet.");
+        }
+
+        _layout.SmartBoxes.Remove(smartBox);
+        _layout.UpdatedUtc = DateTimeOffset.UtcNow;
+
+        var workspace = _reconciler.Reconcile(_layout, _lastItems);
+        await _layoutStore.SaveAsync(workspace.Layout, cancellationToken);
+        return workspace;
+    }
+
     public async Task<DesktopWorkspace> ResetLayoutAsync(CancellationToken cancellationToken = default)
     {
         _layout = DefaultSmartBoxFactory.CreateDefaultLayout();

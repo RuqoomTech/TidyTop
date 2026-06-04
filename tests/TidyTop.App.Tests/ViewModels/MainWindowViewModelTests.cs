@@ -64,6 +64,48 @@ public class MainWindowViewModelTests
         Assert.Contains("Moved", viewModel.StatusMessage);
     }
 
+
+
+    [Fact]
+    public async Task SmartBoxEditor_RenamesSmartBoxThroughService()
+    {
+        var service = new FakeWorkspaceService(CreateWorkspace());
+        var launcher = new FakeDesktopItemLauncher();
+        var viewModel = new MainWindowViewModel(service, launcher);
+
+        await viewModel.InitializeAsync();
+        viewModel.OpenSmartBoxEditor(viewModel.SmartBoxes.Single());
+        viewModel.EditingSmartBoxTitle = "Documents";
+        await viewModel.SaveSmartBoxEditorCommand.ExecuteAsync();
+
+        Assert.Equal("Documents", service.LastRenameTitle);
+        Assert.False(viewModel.IsSmartBoxEditorOpen);
+    }
+
+    [Fact]
+    public async Task DragState_HighlightsCurrentDropTargetAndClearsOnEnd()
+    {
+        var service = new FakeWorkspaceService(CreateWorkspace(extraBoxes: 1));
+        var launcher = new FakeDesktopItemLauncher();
+        var viewModel = new MainWindowViewModel(service, launcher);
+
+        await viewModel.InitializeAsync();
+        var item = viewModel.SmartBoxes[0].Items.Single();
+        var target = viewModel.SmartBoxes[1];
+
+        viewModel.BeginDesktopItemDrag(item, 100, 120);
+        viewModel.UpdateDesktopItemDrag(200, 220, target);
+
+        Assert.True(viewModel.IsDraggingItem);
+        Assert.True(target.IsDropTarget);
+        Assert.Contains(target.Title, viewModel.DragDropHint);
+
+        viewModel.EndDesktopItemDrag();
+
+        Assert.False(viewModel.IsDraggingItem);
+        Assert.All(viewModel.SmartBoxes, box => Assert.False(box.IsDropTarget));
+    }
+
     private static DesktopWorkspace CreateWorkspace(int extraBoxes = 0)
     {
         var item = new DesktopItem
@@ -103,6 +145,8 @@ public class MainWindowViewModelTests
         }
 
         public Guid? LastMoveTargetId { get; private set; }
+        public string? LastRenameTitle { get; private set; }
+        public Guid? LastDeleteId { get; private set; }
 
         public Task<DesktopWorkspace> LoadAsync(CancellationToken cancellationToken = default)
         {
@@ -117,6 +161,30 @@ public class MainWindowViewModelTests
         public Task<DesktopWorkspace> AddSmartBoxAsync(string title, CancellationToken cancellationToken = default)
         {
             _workspace = CreateWorkspace(extraBoxes: 1);
+            return Task.FromResult(_workspace);
+        }
+
+        public Task<DesktopWorkspace> RenameSmartBoxAsync(Guid smartBoxId, string title, CancellationToken cancellationToken = default)
+        {
+            LastRenameTitle = title;
+            var box = _workspace.Layout.FindBox(smartBoxId);
+            if (box is not null)
+            {
+                box.Title = title;
+            }
+
+            return Task.FromResult(_workspace);
+        }
+
+        public Task<DesktopWorkspace> DeleteSmartBoxAsync(Guid smartBoxId, CancellationToken cancellationToken = default)
+        {
+            LastDeleteId = smartBoxId;
+            var box = _workspace.Layout.FindBox(smartBoxId);
+            if (box is not null)
+            {
+                _workspace.Layout.SmartBoxes.Remove(box);
+            }
+
             return Task.FromResult(_workspace);
         }
 

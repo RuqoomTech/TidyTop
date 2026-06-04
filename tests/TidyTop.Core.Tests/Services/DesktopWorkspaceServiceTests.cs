@@ -82,6 +82,49 @@ public class DesktopWorkspaceServiceTests
         Assert.True(store.SaveCount >= 2);
     }
 
+
+
+    [Fact]
+    public async Task RenameSmartBoxAsync_TrimsAndSavesTitle()
+    {
+        var box = new SmartBox { Title = "Old", Behavior = SmartBoxBehavior.Manual };
+        var layout = new DesktopLayout();
+        layout.SmartBoxes.Add(box);
+
+        var store = new MemoryLayoutStore(layout);
+        var scanner = new FakeDesktopScanner(Array.Empty<DesktopItem>());
+        var service = new DesktopWorkspaceService(scanner, store, new LayoutReconciler());
+
+        await service.LoadAsync();
+        await service.RenameSmartBoxAsync(box.Id, "  New Name  ");
+
+        Assert.Equal("New Name", box.Title);
+        Assert.True(store.SaveCount >= 2);
+    }
+
+    [Fact]
+    public async Task DeleteSmartBoxAsync_RemovesManualBoxWithoutDeletingDesktopItems()
+    {
+        var item = CreateItem("Tool", @"C:\Desktop\Tool.lnk", ".lnk", DesktopItemType.Shortcut);
+        var manual = new SmartBox { Title = "Manual", Behavior = SmartBoxBehavior.Manual, IsSystemBox = false };
+        manual.AssignItem(item);
+        var catchAll = new SmartBox { Title = "Other", Behavior = SmartBoxBehavior.CatchAll, IsSystemBox = true };
+        var layout = new DesktopLayout();
+        layout.SmartBoxes.Add(manual);
+        layout.SmartBoxes.Add(catchAll);
+
+        var store = new MemoryLayoutStore(layout);
+        var scanner = new FakeDesktopScanner(new[] { item });
+        var service = new DesktopWorkspaceService(scanner, store, new LayoutReconciler());
+
+        await service.LoadAsync();
+        var workspace = await service.DeleteSmartBoxAsync(manual.Id);
+
+        Assert.DoesNotContain(workspace.Layout.SmartBoxes, box => box.Id == manual.Id);
+        Assert.Contains(workspace.Layout.SmartBoxes.Single(box => box.Behavior == SmartBoxBehavior.CatchAll).ItemPaths,
+            path => path.Equals(item.NormalizedPath, StringComparison.OrdinalIgnoreCase));
+    }
+
     private static DesktopItem CreateItem(string name, string path, string extension, DesktopItemType type)
     {
         return new DesktopItem

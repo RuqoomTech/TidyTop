@@ -19,6 +19,7 @@ public sealed class SmartBoxViewModel : ReactiveObject
     private int _height;
     private bool _isBeingMoved;
     private bool _isBeingResized;
+    private bool _isDropTarget;
 
     public SmartBoxViewModel(SmartBoxSnapshot snapshot)
     {
@@ -45,6 +46,8 @@ public sealed class SmartBoxViewModel : ReactiveObject
     public bool IsSystemBox { get; }
     public bool IsLocked { get; }
     public bool IsCollapsed { get; }
+    public bool CanDelete => !IsSystemBox;
+    public string MenuToolTip => IsSystemBox ? "Rename default SmartBox" : "Rename or delete SmartBox";
     public IBrush AccentBrush { get; }
     public ObservableCollection<DesktopItemViewModel> Items { get; }
     public int ItemCount => Items.Count;
@@ -113,6 +116,12 @@ public sealed class SmartBoxViewModel : ReactiveObject
 
     public bool IsInteracting => IsBeingMoved || IsBeingResized;
 
+    public bool IsDropTarget
+    {
+        get => _isDropTarget;
+        private set => this.RaiseAndSetIfChanged(ref _isDropTarget, value);
+    }
+
     public string EmptyText => Behavior == nameof(SmartBoxBehavior.Manual)
         ? "Drop desktop items here to organize them."
         : "No matching desktop items.";
@@ -134,6 +143,11 @@ public sealed class SmartBoxViewModel : ReactiveObject
         IsBeingMoved = false;
         IsBeingResized = false;
         this.RaisePropertyChanged(nameof(IsInteracting));
+    }
+
+    public void SetDropTarget(bool isDropTarget)
+    {
+        IsDropTarget = isDropTarget;
     }
 
     public void SetPosition(int x, int y)

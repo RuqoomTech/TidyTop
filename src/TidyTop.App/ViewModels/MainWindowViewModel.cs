@@ -14,6 +14,16 @@ public sealed class MainWindowViewModel : ViewModelBase
     private int _totalItemCount;
     private int _organizedItemCount;
     private int _boxCount;
+    private bool _isDraggingItem;
+    private string _dragGhostText = string.Empty;
+    private string _dragDropHint = string.Empty;
+    private int _dragGhostX;
+    private int _dragGhostY;
+    private bool _isSmartBoxEditorOpen;
+    private Guid? _editingSmartBoxId;
+    private string _editingSmartBoxTitle = string.Empty;
+    private string _editingSmartBoxSubtitle = string.Empty;
+    private bool _editingSmartBoxCanDelete;
 
     public MainWindowViewModel(IDesktopWorkspaceService workspaceService, IDesktopItemLauncher desktopItemLauncher)
     {
@@ -23,6 +33,13 @@ public sealed class MainWindowViewModel : ViewModelBase
         AddSmartBoxCommand = new AsyncRelayCommand(AddSmartBoxAsync);
         ResetLayoutCommand = new AsyncRelayCommand(ResetLayoutAsync);
         SaveLayoutCommand = new AsyncRelayCommand(SaveLayoutAsync);
+        SaveSmartBoxEditorCommand = new AsyncRelayCommand(SaveSmartBoxEditorAsync);
+        DeleteSmartBoxCommand = new AsyncRelayCommand(DeleteEditingSmartBoxAsync, () => EditingSmartBoxCanDelete);
+        CancelSmartBoxEditorCommand = new AsyncRelayCommand(() =>
+        {
+            CloseSmartBoxEditor();
+            return Task.CompletedTask;
+        });
     }
 
     public string Title => "TidyTop";
@@ -33,6 +50,9 @@ public sealed class MainWindowViewModel : ViewModelBase
     public AsyncRelayCommand AddSmartBoxCommand { get; }
     public AsyncRelayCommand ResetLayoutCommand { get; }
     public AsyncRelayCommand SaveLayoutCommand { get; }
+    public AsyncRelayCommand SaveSmartBoxEditorCommand { get; }
+    public AsyncRelayCommand DeleteSmartBoxCommand { get; }
+    public AsyncRelayCommand CancelSmartBoxEditorCommand { get; }
 
     public int TotalItemCount
     {
@@ -50,6 +70,64 @@ public sealed class MainWindowViewModel : ViewModelBase
     {
         get => _boxCount;
         private set => this.RaiseAndSetIfChanged(ref _boxCount, value);
+    }
+
+    public bool IsDraggingItem
+    {
+        get => _isDraggingItem;
+        private set => this.RaiseAndSetIfChanged(ref _isDraggingItem, value);
+    }
+
+    public string DragGhostText
+    {
+        get => _dragGhostText;
+        private set => this.RaiseAndSetIfChanged(ref _dragGhostText, value);
+    }
+
+    public string DragDropHint
+    {
+        get => _dragDropHint;
+        private set => this.RaiseAndSetIfChanged(ref _dragDropHint, value);
+    }
+
+    public int DragGhostX
+    {
+        get => _dragGhostX;
+        private set => this.RaiseAndSetIfChanged(ref _dragGhostX, value);
+    }
+
+    public int DragGhostY
+    {
+        get => _dragGhostY;
+        private set => this.RaiseAndSetIfChanged(ref _dragGhostY, value);
+    }
+
+    public bool IsSmartBoxEditorOpen
+    {
+        get => _isSmartBoxEditorOpen;
+        private set => this.RaiseAndSetIfChanged(ref _isSmartBoxEditorOpen, value);
+    }
+
+    public string EditingSmartBoxTitle
+    {
+        get => _editingSmartBoxTitle;
+        set => this.RaiseAndSetIfChanged(ref _editingSmartBoxTitle, value);
+    }
+
+    public string EditingSmartBoxSubtitle
+    {
+        get => _editingSmartBoxSubtitle;
+        private set => this.RaiseAndSetIfChanged(ref _editingSmartBoxSubtitle, value);
+    }
+
+    public bool EditingSmartBoxCanDelete
+    {
+        get => _editingSmartBoxCanDelete;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _editingSmartBoxCanDelete, value);
+            DeleteSmartBoxCommand.RaiseCanExecuteChanged();
+        }
     }
 
     public string SummaryText => $"{OrganizedItemCount}/{TotalItemCount} items organized across {BoxCount} boxes";
@@ -99,7 +177,6 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
     }
 
-
     public async Task OpenDesktopItemAsync(DesktopItemViewModel desktopItem)
     {
         ArgumentNullException.ThrowIfNull(desktopItem);
@@ -140,6 +217,33 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
     }
 
+    public async Task MoveDesktopItemToUnboxedAsync(DesktopItemViewModel desktopItem)
+    {
+        ArgumentNullException.ThrowIfNull(desktopItem);
+
+        try
+        {
+            BeginBusy($"Moving {desktopItem.Name} to Other / Unboxed...");
+            var workspace = await _workspaceService.MoveItemToUnboxedAsync(desktopItem.FullPath);
+            ApplyWorkspace(workspace);
+            EndBusy($"Moved {desktopItem.Name} to Other / Unboxed.");
+        }
+        catch (Exception ex)
+        {
+            Fail($"Could not move {desktopItem.Name}: {ex.Message}");
+        }
+    }
+
+    public IReadOnlyList<SmartBoxViewModel> GetMoveTargets(DesktopItemViewModel desktopItem)
+    {
+        ArgumentNullException.ThrowIfNull(desktopItem);
+
+        return SmartBoxes
+            .Where(box => box.IsVisible && box.Id != desktopItem.SmartBoxId)
+            .OrderBy(box => box.Title, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
     public SmartBoxViewModel? FindSmartBoxAt(double x, double y)
     {
         return SmartBoxes
@@ -149,6 +253,42 @@ public sealed class MainWindowViewModel : ViewModelBase
             .FirstOrDefault();
     }
 
+    public void BeginDesktopItemDrag(DesktopItemViewModel desktopItem, int x, int y)
+    {
+        ArgumentNullException.ThrowIfNull(desktopItem);
+
+        IsDraggingItem = true;
+        DragGhostText = desktopItem.Name;
+        DragDropHint = "Drop onto a SmartBox";
+        UpdateDesktopItemDrag(x, y, null);
+    }
+
+    public void UpdateDesktopItemDrag(int x, int y, SmartBoxViewModel? targetSmartBox)
+    {
+        DragGhostX = Math.Max(0, x + 14);
+        DragGhostY = Math.Max(0, y + 14);
+
+        foreach (var smartBox in SmartBoxes)
+        {
+            smartBox.SetDropTarget(targetSmartBox is not null && smartBox.Id == targetSmartBox.Id);
+        }
+
+        DragDropHint = targetSmartBox is null
+            ? "Drop onto a SmartBox"
+            : $"Move to {targetSmartBox.Title}";
+    }
+
+    public void EndDesktopItemDrag()
+    {
+        foreach (var smartBox in SmartBoxes)
+        {
+            smartBox.SetDropTarget(false);
+        }
+
+        IsDraggingItem = false;
+        DragGhostText = string.Empty;
+        DragDropHint = string.Empty;
+    }
 
     public async Task AutoArrangeAsync(int surfaceWidth, int surfaceHeight)
     {
@@ -183,6 +323,72 @@ public sealed class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             Fail($"Could not save SmartBox position: {ex.Message}");
+        }
+    }
+
+    public void OpenSmartBoxEditor(SmartBoxViewModel smartBox)
+    {
+        ArgumentNullException.ThrowIfNull(smartBox);
+
+        _editingSmartBoxId = smartBox.Id;
+        EditingSmartBoxTitle = smartBox.Title;
+        EditingSmartBoxSubtitle = smartBox.IsSystemBox
+            ? "Default SmartBox • can be renamed, but not deleted yet"
+            : "Manual SmartBox • can be renamed or deleted";
+        EditingSmartBoxCanDelete = smartBox.CanDelete;
+        IsSmartBoxEditorOpen = true;
+        StatusMessage = $"Editing {smartBox.Title}.";
+    }
+
+    public void CloseSmartBoxEditor()
+    {
+        IsSmartBoxEditorOpen = false;
+        _editingSmartBoxId = null;
+        EditingSmartBoxTitle = string.Empty;
+        EditingSmartBoxSubtitle = string.Empty;
+        EditingSmartBoxCanDelete = false;
+    }
+
+    private async Task SaveSmartBoxEditorAsync()
+    {
+        if (_editingSmartBoxId is null)
+        {
+            CloseSmartBoxEditor();
+            return;
+        }
+
+        try
+        {
+            BeginBusy("Saving SmartBox...");
+            var workspace = await _workspaceService.RenameSmartBoxAsync(_editingSmartBoxId.Value, EditingSmartBoxTitle);
+            CloseSmartBoxEditor();
+            ApplyWorkspace(workspace);
+            EndBusy("SmartBox saved.");
+        }
+        catch (Exception ex)
+        {
+            Fail($"Could not save SmartBox: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteEditingSmartBoxAsync()
+    {
+        if (_editingSmartBoxId is null || !EditingSmartBoxCanDelete)
+        {
+            return;
+        }
+
+        try
+        {
+            BeginBusy("Deleting SmartBox...");
+            var workspace = await _workspaceService.DeleteSmartBoxAsync(_editingSmartBoxId.Value);
+            CloseSmartBoxEditor();
+            ApplyWorkspace(workspace);
+            EndBusy("SmartBox deleted. Its items were returned to the layout safely.");
+        }
+        catch (Exception ex)
+        {
+            Fail($"Could not delete SmartBox: {ex.Message}");
         }
     }
 

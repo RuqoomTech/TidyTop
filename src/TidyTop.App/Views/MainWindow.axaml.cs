@@ -54,12 +54,20 @@ public partial class MainWindow : Window
         Height = screen.Bounds.Height / screen.Scaling;
     }
 
-
     private async void OnAutoArrangeClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is MainWindowViewModel viewModel)
         {
             await viewModel.AutoArrangeAsync((int)Math.Round(ClientSize.Width), (int)Math.Round(ClientSize.Height));
+            e.Handled = true;
+        }
+    }
+
+    private void OnSmartBoxEditClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: SmartBoxViewModel smartBox } && DataContext is MainWindowViewModel viewModel)
+        {
+            viewModel.OpenSmartBoxEditor(smartBox);
             e.Handled = true;
         }
     }
@@ -76,7 +84,7 @@ public partial class MainWindow : Window
 
     private void BeginSmartBoxInteraction(object? sender, PointerPressedEventArgs e, SmartBoxInteractionMode mode)
     {
-        if (_activeItemDrag is not null)
+        if (_activeItemDrag is not null || IsInsideButton(e.Source))
         {
             return;
         }
@@ -229,18 +237,25 @@ public partial class MainWindow : Window
         }
 
         var pointerPoint = e.GetCurrentPoint(this);
+        if (pointerPoint.Properties.IsRightButtonPressed)
+        {
+            ShowDesktopItemContextMenu(control, desktopItem);
+            e.Handled = true;
+            return;
+        }
+
         if (!pointerPoint.Properties.IsLeftButtonPressed)
         {
             return;
         }
 
-        _activeItemDrag = new DesktopItemDrag(desktopItem, pointerPoint.Position, false);
+        _activeItemDrag = new DesktopItemDrag(desktopItem, pointerPoint.Position, false, false);
         e.Pointer.Capture(control);
     }
 
     private void OnDesktopItemPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (_activeItemDrag is null)
+        if (_activeItemDrag is null || DataContext is not MainWindowViewModel viewModel)
         {
             return;
         }
@@ -254,7 +269,25 @@ public partial class MainWindow : Window
         var delta = pointerPoint.Position - _activeItemDrag.StartPointer;
         if (!_activeItemDrag.IsDragging && Math.Sqrt((delta.X * delta.X) + (delta.Y * delta.Y)) >= ItemDragThreshold)
         {
-            _activeItemDrag = _activeItemDrag with { IsDragging = true };
+            _activeItemDrag = _activeItemDrag with { IsDragging = true, HasVisualStarted = true };
+            viewModel.BeginDesktopItemDrag(
+                _activeItemDrag.DesktopItem,
+                (int)Math.Round(pointerPoint.Position.X),
+                (int)Math.Round(pointerPoint.Position.Y));
+        }
+
+        if (_activeItemDrag.IsDragging)
+        {
+            var targetBox = viewModel.FindSmartBoxAt(pointerPoint.Position.X, pointerPoint.Position.Y);
+            if (targetBox?.Id == _activeItemDrag.DesktopItem.SmartBoxId)
+            {
+                targetBox = null;
+            }
+
+            viewModel.UpdateDesktopItemDrag(
+                (int)Math.Round(pointerPoint.Position.X),
+                (int)Math.Round(pointerPoint.Position.Y),
+                targetBox);
         }
 
         e.Handled = true;
@@ -267,6 +300,11 @@ public partial class MainWindow : Window
 
     private void OnDesktopItemPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
     {
+        if (_activeItemDrag is { HasVisualStarted: true } && DataContext is MainWindowViewModel viewModel)
+        {
+            viewModel.EndDesktopItemDrag();
+        }
+
         _activeItemDrag = null;
     }
 
@@ -286,14 +324,59 @@ public partial class MainWindow : Window
             return false;
         }
 
-        var targetBox = viewModel.FindSmartBoxAt(releasePosition.X, releasePosition.Y);
-        if (targetBox is null || targetBox.Id == drag.DesktopItem.SmartBoxId)
+        try
         {
+            var targetBox = viewModel.FindSmartBoxAt(releasePosition.X, releasePosition.Y);
+            if (targetBox is null || targetBox.Id == drag.DesktopItem.SmartBoxId)
+            {
+                return true;
+            }
+
+            await viewModel.MoveDesktopItemToSmartBoxAsync(drag.DesktopItem, targetBox);
             return true;
         }
+        finally
+        {
+            viewModel.EndDesktopItemDrag();
+        }
+    }
 
-        await viewModel.MoveDesktopItemToSmartBoxAsync(drag.DesktopItem, targetBox);
-        return true;
+    private void ShowDesktopItemContextMenu(Control placementTarget, DesktopItemViewModel desktopItem)
+    {
+        if (DataContext is not MainWindowViewModel viewModel)
+        {
+            return;
+        }
+
+        var menu = new ContextMenu();
+
+        var openItem = new MenuItem { Header = "Open" };
+        openItem.Click += async (_, _) => await viewModel.OpenDesktopItemAsync(desktopItem);
+        menu.Items.Add(openItem);
+
+        var moveMenu = new MenuItem { Header = "Move to SmartBox" };
+        var moveTargets = viewModel.GetMoveTargets(desktopItem);
+        if (moveTargets.Count == 0)
+        {
+            moveMenu.IsEnabled = false;
+        }
+        else
+        {
+            foreach (var target in moveTargets)
+            {
+                var targetItem = new MenuItem { Header = target.Title };
+                targetItem.Click += async (_, _) => await viewModel.MoveDesktopItemToSmartBoxAsync(desktopItem, target);
+                moveMenu.Items.Add(targetItem);
+            }
+        }
+
+        menu.Items.Add(moveMenu);
+
+        var moveToUnboxed = new MenuItem { Header = "Move to Other / Unboxed" };
+        moveToUnboxed.Click += async (_, _) => await viewModel.MoveDesktopItemToUnboxedAsync(desktopItem);
+        menu.Items.Add(moveToUnboxed);
+
+        menu.Open(placementTarget);
     }
 
     private static bool IsInsideButton(object? source)
@@ -348,7 +431,8 @@ public partial class MainWindow : Window
     private sealed record DesktopItemDrag(
         DesktopItemViewModel DesktopItem,
         Point StartPointer,
-        bool IsDragging);
+        bool IsDragging,
+        bool HasVisualStarted);
 
     private enum SmartBoxInteractionMode
     {
