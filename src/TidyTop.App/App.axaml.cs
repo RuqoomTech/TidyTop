@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using TidyTop.App.Services;
 using TidyTop.App.ViewModels;
 using TidyTop.App.Views;
+using Avalonia.Controls;
 
 namespace TidyTop.App;
 

@@ -18,9 +18,10 @@
         Background="Transparent">
 
     <Grid ClipToBounds="False" Background="Transparent">
-        <ItemsControl ItemsSource="{Binding SmartBoxes}"
-                      HorizontalAlignment="Stretch"
-                      VerticalAlignment="Stretch">
+        <ItemsControl Classes="smart-box-layer"
+              ItemsSource="{Binding SmartBoxes}"
+              HorizontalAlignment="Stretch"
+              VerticalAlignment="Stretch">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Canvas/>
@@ -28,7 +29,8 @@
             </ItemsControl.ItemsPanel>
 
             <ItemsControl.Styles>
-                <Style Selector="ContentPresenter">
+               <Style Selector="ItemsControl.smart-box-layer > ContentPresenter"
+       		    x:DataType="vm:SmartBoxViewModel">
                     <Setter Property="Canvas.Left" Value="{Binding X}"/>
                     <Setter Property="Canvas.Top" Value="{Binding Y}"/>
                     <Setter Property="IsVisible" Value="{Binding IsVisible}"/>
