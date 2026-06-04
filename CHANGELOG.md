@@ -1,15 +1,3 @@
-
-## Unreleased — Desktop integration pass
-
-- Added system tray menu.
-- Added show/hide overlay behavior.
-- Added `Ctrl+Alt+T` global quick-hide hotkey.
-- Added safe native Windows desktop icon hide/show.
-- Added restoration of captured native desktop icon visibility on exit.
-- Added desktop integration settings persistence.
-- Added toolbar controls for overlay hide and native icon mode.
-- Updated docs, smoke test, sprint plan, and task backlog.
-
 # Changelog
 
 All notable project changes should be recorded here.
@@ -17,6 +5,20 @@ All notable project changes should be recorded here.
 ## Unreleased
 
 ### Added
+
+- Stability hardening pass: runtime state model, file logging, feature flags, and safer desktop integration guards.
+- Atomic JSON persistence for layout/settings with `.tmp` writes and `.bak` recovery.
+- Emergency **Restore Windows icons** toolbar/tray action.
+- More robust native Windows desktop icon service that shows/hides both `SHELLDLL_DefView` and the child `SysListView32` icon list.
+- Tests for backup recovery of layout and settings stores.
+
+### Fixed
+
+- Fixed the native desktop icon bug where choosing Show icons while TidyTop was running could leave the Explorer icon list invisible.
+- Fixed a duplicated pointer-guard line in SmartBox drag handling.
+- Removed unused auto-layout variables that produced compiler warnings.
+
+### Added previously
 
 - Drag/drop polish pass: item drag ghost, drop-target highlight, and live target hint.
 - Right-click item context menu with Open, Move to SmartBox, and Move to Other / Unboxed actions.

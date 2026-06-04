@@ -37,7 +37,17 @@ dotnet run --project src/TidyTop.App/TidyTop.App.csproj
 5. Use the toolbar or tray menu to hide native desktop icons.
 6. Verify desktop files are still present in File Explorer.
 7. Use the toolbar or tray menu to show native desktop icons again.
-8. Exit TidyTop from the tray menu; native desktop icons should restore to their captured launch state.
+8. If native icons do not immediately reappear, use **Restore icons** in the toolbar or **Restore Windows icons** in the tray.
+9. Exit TidyTop from the tray menu; native desktop icons should be visible if TidyTop hid them during the session.
+10. Check `%APPDATA%/TidyTop/logs/tidytop.log` if a desktop integration step fails.
+
+## Persistence safety
+
+1. Open `%APPDATA%/TidyTop`.
+2. Confirm `layout.json` and `settings.json` exist after saving.
+3. Confirm `.bak` files are created after the second save.
+4. Corrupt `layout.json` manually only in a test environment.
+5. Start TidyTop and confirm it recovers from `layout.json.bak`.
 
 ## Safety rule
 

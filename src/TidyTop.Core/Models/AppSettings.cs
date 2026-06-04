@@ -12,14 +12,28 @@ public sealed class AppSettings
     public bool StartHidden { get; set; }
 
     /// <summary>
+    /// When true, TidyTop attaches its borderless window to the Windows desktop host.
+    /// Disable this while debugging if desktop parenting behaves badly on a machine.
+    /// </summary>
+    public bool EnableDesktopOverlayHost { get; set; } = true;
+
+    /// <summary>
+    /// Global kill switch for native Windows desktop icon visibility control.
+    /// This can be disabled from settings if Explorer desktop icon control behaves badly on a machine.
+    /// </summary>
+    public bool EnableNativeDesktopIconControl { get; set; } = true;
+
+    /// <summary>
     /// When true, TidyTop hides the native Windows desktop icon view while it is running.
     /// The real desktop files are not changed.
     /// </summary>
     public bool HideNativeDesktopIcons { get; set; }
 
+    public bool EnableTrayIcon { get; set; } = true;
     public bool EnableGlobalHotkey { get; set; } = true;
     public string GlobalHotkey { get; set; } = "Ctrl+Alt+T";
 
+    public bool EnableDragDrop { get; set; } = true;
     public bool RunOnStartup { get; set; }
     public bool EnableAutoOrganizeOnRefresh { get; set; } = true;
 

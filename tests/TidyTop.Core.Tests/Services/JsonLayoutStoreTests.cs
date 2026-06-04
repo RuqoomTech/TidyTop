@@ -23,4 +23,21 @@ public class JsonLayoutStoreTests
         Assert.Equal("Saved", loaded!.Name);
         Assert.Single(loaded.SmartBoxes);
     }
+    [Fact]
+    public async Task LoadAsync_UsesBackupWhenPrimaryLayoutIsBroken()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "TidyTopTests", Guid.NewGuid().ToString("N"));
+        var paths = new AppDataPaths(root);
+        var store = new JsonLayoutStore(paths);
+
+        await store.SaveAsync(new DesktopLayout { Name = "Backup" });
+        await store.SaveAsync(new DesktopLayout { Name = "Primary" });
+        await File.WriteAllTextAsync(paths.LayoutFilePath, "{ broken json");
+
+        var loaded = await store.LoadAsync();
+
+        Assert.NotNull(loaded);
+        Assert.Equal("Backup", loaded!.Name);
+    }
+
 }

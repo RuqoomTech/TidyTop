@@ -21,13 +21,26 @@ public sealed partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        var logger = Services.GetService<IAppLogger>() ?? NullAppLogger.Instance;
+        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+        {
+            logger.Error("Unhandled TidyTop application exception.", args.ExceptionObject as Exception);
+        };
+
+        TaskScheduler.UnobservedTaskException += (_, args) =>
+        {
+            logger.Error("Unobserved TidyTop task exception.", args.Exception);
+            args.SetObserved();
+        };
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.ShutdownMode = ShutdownMode.OnMainWindowClose;
             desktop.MainWindow = new MainWindow(
                 Services.GetRequiredService<IDesktopOverlayHost>(),
                 Services.GetRequiredService<INativeDesktopIconService>(),
-                Services.GetRequiredService<IGlobalHotkeyService>())
+                Services.GetRequiredService<IGlobalHotkeyService>(),
+                logger)
             {
                 DataContext = Services.GetRequiredService<MainWindowViewModel>()
             };

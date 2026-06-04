@@ -9,6 +9,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddTidyTop(this IServiceCollection services)
     {
         services.AddSingleton(AppDataPaths.CreateDefault());
+        services.AddSingleton<IAppLogger, FileAppLogger>();
         services.AddSingleton<IDesktopScanner, DesktopScanner>();
         services.AddSingleton<ILayoutStore, JsonLayoutStore>();
         services.AddSingleton<IAppSettingsStore, JsonAppSettingsStore>();

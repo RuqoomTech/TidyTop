@@ -332,7 +332,8 @@
                 <Button Classes="toolbar-button" Content="Refresh" Command="{Binding RefreshCommand}"/>
                 <Button Classes="toolbar-button" Content="Add box" Command="{Binding AddSmartBoxCommand}"/>
                 <Button Classes="toolbar-button" Content="Auto layout" Click="OnAutoArrangeClick"/>
-                <Button Classes="toolbar-button" Content="{Binding NativeDesktopIconsButtonText}" Click="OnToggleNativeDesktopIconsClick"/>
+                <Button Classes="toolbar-button" Content="{Binding NativeDesktopIconsButtonText}" IsEnabled="{Binding EnableNativeDesktopIconControl}" Click="OnToggleNativeDesktopIconsClick"/>
+                <Button Classes="toolbar-button" Content="Restore icons" Click="OnRestoreNativeDesktopIconsClick"/>
                 <Button Classes="toolbar-button" Content="{Binding OverlayVisibilityText}" Click="OnHideTidyTopClick"/>
                 <Button Classes="toolbar-button" Content="Save" Command="{Binding SaveLayoutCommand}"/>
                 <Button Classes="toolbar-button" Content="Reset" Command="{Binding ResetLayoutCommand}"/>

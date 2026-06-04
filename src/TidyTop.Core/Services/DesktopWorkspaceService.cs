@@ -227,9 +227,6 @@ public sealed class DesktopWorkspaceService : IDesktopWorkspaceService
         const int reservedTop = 86;
         const int minimumColumnWidth = 300;
         const int maximumColumnWidth = 430;
-        const int minimumBoxHeight = 198;
-        const int maximumBoxHeight = 340;
-
         var safeWidth = Math.Max(900, surfaceWidth);
         var columnCount = safeWidth switch
         {

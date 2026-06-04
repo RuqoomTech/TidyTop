@@ -6,6 +6,7 @@ using Avalonia.Platform;
 using Avalonia.Threading;
 using TidyTop.App.Services;
 using TidyTop.App.ViewModels;
+using TidyTop.Core.Services;
 
 namespace TidyTop.App.Views;
 
@@ -16,24 +17,30 @@ public partial class MainWindow : Window
     private readonly IDesktopOverlayHost _desktopOverlayHost;
     private readonly INativeDesktopIconService _nativeDesktopIconService;
     private readonly IGlobalHotkeyService _globalHotkeyService;
+    private readonly IAppLogger _logger;
     private bool _initialized;
     private bool _isClosingFromTray;
+    private bool _hasHiddenNativeIconsDuringSession;
+    private bool _forceKeepNativeIconsVisibleOnExit;
     private SmartBoxInteraction? _activeInteraction;
     private DesktopItemDrag? _activeItemDrag;
     private TrayIcon? _trayIcon;
     private NativeMenuItem? _showHideTrayItem;
     private NativeMenuItem? _nativeIconsTrayItem;
+    private NativeMenuItem? _restoreNativeIconsTrayItem;
     private NativeMenuItem? _refreshTrayItem;
     private NativeMenuItem? _autoLayoutTrayItem;
 
     public MainWindow(
         IDesktopOverlayHost desktopOverlayHost,
         INativeDesktopIconService nativeDesktopIconService,
-        IGlobalHotkeyService globalHotkeyService)
+        IGlobalHotkeyService globalHotkeyService,
+        IAppLogger? logger = null)
     {
         _desktopOverlayHost = desktopOverlayHost;
         _nativeDesktopIconService = nativeDesktopIconService;
         _globalHotkeyService = globalHotkeyService;
+        _logger = logger ?? NullAppLogger.Instance;
         InitializeComponent();
         Opened += OnOpened;
         Closing += OnClosing;
@@ -49,15 +56,25 @@ public partial class MainWindow : Window
 
         _initialized = true;
         ConfigureDesktopBounds();
-        _desktopOverlayHost.AttachToDesktop(this);
         _nativeDesktopIconService.CaptureInitialState();
 
         if (DataContext is MainWindowViewModel viewModel)
         {
             await viewModel.InitializeAsync();
+
+            if (viewModel.EnableDesktopOverlayHost)
+            {
+                AttachToDesktopSafely();
+            }
+
             ApplyNativeDesktopIconPreference(viewModel.HideNativeDesktopIcons);
             ConfigureGlobalHotkey(viewModel.EnableGlobalHotkey);
-            ConfigureTrayIcon();
+
+            if (viewModel.EnableTrayIcon)
+            {
+                ConfigureTrayIcon();
+            }
+
             RefreshTrayMenuLabels();
 
             if (viewModel.ShouldStartHidden)
@@ -81,6 +98,18 @@ public partial class MainWindow : Window
         Height = screen.Bounds.Height / screen.Scaling;
     }
 
+    private void AttachToDesktopSafely()
+    {
+        try
+        {
+            _desktopOverlayHost.AttachToDesktop(this);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error("Could not attach TidyTop to the Windows desktop host. Continuing as a normal borderless window.", ex);
+        }
+    }
+
     private void ConfigureTrayIcon()
     {
         if (_trayIcon is not null)
@@ -88,36 +117,47 @@ public partial class MainWindow : Window
             return;
         }
 
-        var menu = new NativeMenu();
-
-        _showHideTrayItem = new NativeMenuItem { Header = "Hide TidyTop" };
-        _showHideTrayItem.Click += (_, _) => ToggleTidyTopVisibility();
-        menu.Items.Add(_showHideTrayItem);
-
-        _refreshTrayItem = new NativeMenuItem { Header = "Refresh items" };
-        _refreshTrayItem.Click += async (_, _) => await RunRefreshFromTrayAsync();
-        menu.Items.Add(_refreshTrayItem);
-
-        _autoLayoutTrayItem = new NativeMenuItem { Header = "Auto layout" };
-        _autoLayoutTrayItem.Click += async (_, _) => await RunAutoLayoutFromTrayAsync();
-        menu.Items.Add(_autoLayoutTrayItem);
-
-        _nativeIconsTrayItem = new NativeMenuItem { Header = "Hide native desktop icons" };
-        _nativeIconsTrayItem.Click += async (_, _) => await ToggleNativeDesktopIconsAsync();
-        menu.Items.Add(_nativeIconsTrayItem);
-
-        var exitItem = new NativeMenuItem { Header = "Exit" };
-        exitItem.Click += (_, _) => ExitFromTray();
-        menu.Items.Add(exitItem);
-
-        _trayIcon = new TrayIcon
+        try
         {
-            ToolTipText = "TidyTop",
-            Menu = menu,
-            IsVisible = true
-        };
+            var menu = new NativeMenu();
 
-        TrySetTrayIconImage(_trayIcon);
+            _showHideTrayItem = new NativeMenuItem { Header = "Hide TidyTop" };
+            _showHideTrayItem.Click += (_, _) => ToggleTidyTopVisibility();
+            menu.Items.Add(_showHideTrayItem);
+
+            _refreshTrayItem = new NativeMenuItem { Header = "Refresh items" };
+            _refreshTrayItem.Click += async (_, _) => await RunRefreshFromTrayAsync();
+            menu.Items.Add(_refreshTrayItem);
+
+            _autoLayoutTrayItem = new NativeMenuItem { Header = "Auto layout" };
+            _autoLayoutTrayItem.Click += async (_, _) => await RunAutoLayoutFromTrayAsync();
+            menu.Items.Add(_autoLayoutTrayItem);
+
+            _nativeIconsTrayItem = new NativeMenuItem { Header = "Hide native desktop icons" };
+            _nativeIconsTrayItem.Click += async (_, _) => await ToggleNativeDesktopIconsAsync();
+            menu.Items.Add(_nativeIconsTrayItem);
+
+            _restoreNativeIconsTrayItem = new NativeMenuItem { Header = "Restore Windows icons" };
+            _restoreNativeIconsTrayItem.Click += async (_, _) => await RestoreNativeDesktopIconsAsync();
+            menu.Items.Add(_restoreNativeIconsTrayItem);
+
+            var exitItem = new NativeMenuItem { Header = "Exit safely" };
+            exitItem.Click += (_, _) => ExitFromTray();
+            menu.Items.Add(exitItem);
+
+            _trayIcon = new TrayIcon
+            {
+                ToolTipText = "TidyTop",
+                Menu = menu,
+                IsVisible = true
+            };
+
+            TrySetTrayIconImage(_trayIcon);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error("Could not initialize the TidyTop tray icon.", ex);
+        }
     }
 
     private static void TrySetTrayIconImage(TrayIcon trayIcon)
@@ -135,16 +175,23 @@ public partial class MainWindow : Window
 
     private void ConfigureGlobalHotkey(bool enabled)
     {
-        _globalHotkeyService.ToggleRequested -= OnGlobalHotkeyToggleRequested;
-        _globalHotkeyService.Stop();
-
-        if (!enabled)
+        try
         {
-            return;
-        }
+            _globalHotkeyService.ToggleRequested -= OnGlobalHotkeyToggleRequested;
+            _globalHotkeyService.Stop();
 
-        _globalHotkeyService.ToggleRequested += OnGlobalHotkeyToggleRequested;
-        _globalHotkeyService.Start();
+            if (!enabled)
+            {
+                return;
+            }
+
+            _globalHotkeyService.ToggleRequested += OnGlobalHotkeyToggleRequested;
+            _globalHotkeyService.Start();
+        }
+        catch (Exception ex)
+        {
+            _logger.Error("Could not start the global TidyTop hotkey.", ex);
+        }
     }
 
     private void OnGlobalHotkeyToggleRequested(object? sender, EventArgs e)
@@ -184,7 +231,11 @@ public partial class MainWindow : Window
     {
         ConfigureDesktopBounds();
         Show();
-        _desktopOverlayHost.AttachToDesktop(this);
+
+        if (DataContext is MainWindowViewModel { EnableDesktopOverlayHost: true })
+        {
+            AttachToDesktopSafely();
+        }
 
         if (DataContext is MainWindowViewModel viewModel)
         {
@@ -207,10 +258,31 @@ public partial class MainWindow : Window
         RefreshTrayMenuLabels();
     }
 
+    private async Task RestoreNativeDesktopIconsAsync()
+    {
+        _nativeDesktopIconService.SetIconsVisible(true);
+        _hasHiddenNativeIconsDuringSession = false;
+        _forceKeepNativeIconsVisibleOnExit = true;
+
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            await viewModel.ForceRestoreNativeDesktopIconsPreferenceAsync();
+        }
+
+        RefreshTrayMenuLabels();
+    }
+
     private void ApplyNativeDesktopIconPreference(bool hideNativeIcons)
     {
+        if (DataContext is MainWindowViewModel { EnableNativeDesktopIconControl: false } && hideNativeIcons)
+        {
+            _nativeDesktopIconService.SetIconsVisible(true);
+            return;
+        }
+
         _nativeDesktopIconService.CaptureInitialState();
         _nativeDesktopIconService.SetIconsVisible(!hideNativeIcons);
+        _hasHiddenNativeIconsDuringSession |= hideNativeIcons;
     }
 
     private void RefreshTrayMenuLabels()
@@ -230,6 +302,12 @@ public partial class MainWindow : Window
             _nativeIconsTrayItem.Header = viewModel.HideNativeDesktopIcons
                 ? "Show native desktop icons"
                 : "Hide native desktop icons";
+            _nativeIconsTrayItem.IsEnabled = viewModel.EnableNativeDesktopIconControl;
+        }
+
+        if (_restoreNativeIconsTrayItem is not null)
+        {
+            _restoreNativeIconsTrayItem.IsEnabled = _nativeDesktopIconService.IsSupported;
         }
     }
 
@@ -251,6 +329,11 @@ public partial class MainWindow : Window
 
     private void ExitFromTray()
     {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            viewModel.SetShuttingDown(true);
+        }
+
         _isClosingFromTray = true;
         Close();
     }
@@ -268,9 +351,33 @@ public partial class MainWindow : Window
 
     private void OnClosed(object? sender, EventArgs e)
     {
-        _globalHotkeyService.ToggleRequested -= OnGlobalHotkeyToggleRequested;
-        _globalHotkeyService.Stop();
-        _nativeDesktopIconService.RestoreCapturedState();
+        try
+        {
+            _globalHotkeyService.ToggleRequested -= OnGlobalHotkeyToggleRequested;
+            _globalHotkeyService.Stop();
+        }
+        catch (Exception ex)
+        {
+            _logger.Error("Could not stop the global hotkey cleanly.", ex);
+        }
+
+        try
+        {
+            if (_forceKeepNativeIconsVisibleOnExit || _hasHiddenNativeIconsDuringSession)
+            {
+                _nativeDesktopIconService.SetIconsVisible(true);
+            }
+            else
+            {
+                _nativeDesktopIconService.RestoreCapturedState();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Error("Could not restore native desktop icons during shutdown.", ex);
+            _nativeDesktopIconService.SetIconsVisible(true);
+        }
+
         _trayIcon?.Dispose();
         _trayIcon = null;
     }
@@ -293,6 +400,12 @@ public partial class MainWindow : Window
     private async void OnToggleNativeDesktopIconsClick(object? sender, RoutedEventArgs e)
     {
         await ToggleNativeDesktopIconsAsync();
+        e.Handled = true;
+    }
+
+    private async void OnRestoreNativeDesktopIconsClick(object? sender, RoutedEventArgs e)
+    {
+        await RestoreNativeDesktopIconsAsync();
         e.Handled = true;
     }
 
@@ -328,7 +441,7 @@ public partial class MainWindow : Window
         }
 
         var pointerPoint = e.GetCurrentPoint(this);
-        if (!pointerPoint.Properties.IsLeftButtonPressed || smartBox.IsLocked)
+        if (!pointerPoint.Properties.IsLeftButtonPressed)
         {
             return;
         }
@@ -460,6 +573,11 @@ public partial class MainWindow : Window
     private void OnDesktopItemPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (_activeInteraction is not null || IsInsideButton(e.Source))
+        {
+            return;
+        }
+
+        if (DataContext is MainWindowViewModel { EnableDragDrop: false })
         {
             return;
         }

@@ -12,28 +12,34 @@ public sealed class JsonLayoutStore : ILayoutStore
     };
 
     private readonly AppDataPaths _paths;
+    private readonly IAppLogger _logger;
 
-    public JsonLayoutStore(AppDataPaths paths)
+    public JsonLayoutStore(AppDataPaths paths, IAppLogger? logger = null)
     {
         _paths = paths;
+        _logger = logger ?? NullAppLogger.Instance;
     }
 
     public async Task<DesktopLayout?> LoadAsync(CancellationToken cancellationToken = default)
     {
-        if (!File.Exists(_paths.LayoutFilePath))
+        var layout = await TryLoadFromPathAsync(_paths.LayoutFilePath, cancellationToken);
+        if (layout is not null)
         {
-            return null;
+            return layout;
         }
 
-        try
+        if (File.Exists(_paths.LayoutBackupFilePath))
         {
-            await using var stream = File.OpenRead(_paths.LayoutFilePath);
-            return await JsonSerializer.DeserializeAsync<DesktopLayout>(stream, JsonOptions, cancellationToken);
+            _logger.Warning("Primary layout file was missing or invalid. Trying backup layout file.");
+            layout = await TryLoadFromPathAsync(_paths.LayoutBackupFilePath, cancellationToken);
+            if (layout is not null)
+            {
+                _logger.Info("Recovered layout from backup file.");
+                return layout;
+            }
         }
-        catch
-        {
-            return null;
-        }
+
+        return null;
     }
 
     public async Task SaveAsync(DesktopLayout layout, CancellationToken cancellationToken = default)
@@ -44,27 +50,54 @@ public sealed class JsonLayoutStore : ILayoutStore
         layout.SchemaVersion = DesktopLayout.CurrentSchemaVersion;
         layout.UpdatedUtc = DateTimeOffset.UtcNow;
 
-        var tempPath = $"{_paths.LayoutFilePath}.tmp";
-        await using (var stream = File.Create(tempPath))
-        {
-            await JsonSerializer.SerializeAsync(stream, layout, JsonOptions, cancellationToken);
-        }
-
-        if (File.Exists(_paths.LayoutFilePath))
-        {
-            File.Delete(_paths.LayoutFilePath);
-        }
-
-        File.Move(tempPath, _paths.LayoutFilePath);
+        await AtomicJsonFile.WriteAsync(
+            _paths.LayoutFilePath,
+            _paths.LayoutBackupFilePath,
+            layout,
+            JsonOptions,
+            _logger,
+            cancellationToken);
     }
 
     public Task DeleteAsync(CancellationToken cancellationToken = default)
     {
-        if (File.Exists(_paths.LayoutFilePath))
+        try
         {
-            File.Delete(_paths.LayoutFilePath);
+            if (File.Exists(_paths.LayoutFilePath))
+            {
+                if (File.Exists(_paths.LayoutBackupFilePath))
+                {
+                    File.Delete(_paths.LayoutBackupFilePath);
+                }
+
+                File.Move(_paths.LayoutFilePath, _paths.LayoutBackupFilePath);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Error("Could not delete layout file safely.", ex);
+            throw;
         }
 
         return Task.CompletedTask;
+    }
+
+    private async Task<DesktopLayout?> TryLoadFromPathAsync(string path, CancellationToken cancellationToken)
+    {
+        if (!File.Exists(path))
+        {
+            return null;
+        }
+
+        try
+        {
+            await using var stream = File.OpenRead(path);
+            return await JsonSerializer.DeserializeAsync<DesktopLayout>(stream, JsonOptions, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Could not load layout file: {path}", ex);
+            return null;
+        }
     }
 }

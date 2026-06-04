@@ -17,12 +17,18 @@
 - [x] Add system tray menu.
 - [x] Add show/hide overlay behavior.
 - [x] Add `Ctrl+Alt+T` global hotkey.
-- [x] Add safe native desktop icon hide/show.
-- [x] Restore native desktop icon visibility on exit.
+- [x] Add native desktop icon hide/show.
+- [x] Add emergency **Restore Windows icons** action.
+- [x] Fix native desktop icon show path to target both DefView and SysListView32.
+- [x] Add atomic layout/settings writes with `.bak` recovery.
+- [x] Add file logging under `%APPDATA%/TidyTop/logs`.
+- [x] Add feature flags for risky desktop integrations.
+- [x] Add runtime state model for safer UI/integration coordination.
 
 ## Next
 
-- [ ] Build a Settings window/overlay.
+- [ ] Build a Settings window/overlay for feature flags.
+- [ ] Add a visible diagnostics panel for logs and desktop integration status.
 - [ ] Add collapse/expand SmartBox state.
 - [ ] Add lock/unlock layout.
 - [ ] Add first-run onboarding.
@@ -33,7 +39,8 @@
 
 ## Safety backlog
 
-- [ ] Add a native desktop icon restore watchdog.
+- [ ] Add a native desktop icon restore watchdog process or startup recovery task.
 - [ ] Add diagnostics when Explorer desktop host is unavailable.
 - [ ] Add a safe reset command for settings and layout.
 - [ ] Add manual test checklist to release process.
+- [ ] Add crash simulation tests around desktop icon visibility.

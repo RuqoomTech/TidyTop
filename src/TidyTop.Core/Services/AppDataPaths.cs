@@ -14,12 +14,20 @@ public sealed class AppDataPaths
 
         RootDirectory = rootDirectory;
         LayoutFilePath = Path.Combine(rootDirectory, "layout.json");
+        LayoutBackupFilePath = Path.Combine(rootDirectory, "layout.json.bak");
         SettingsFilePath = Path.Combine(rootDirectory, "settings.json");
+        SettingsBackupFilePath = Path.Combine(rootDirectory, "settings.json.bak");
+        LogsDirectoryPath = Path.Combine(rootDirectory, "logs");
+        LogFilePath = Path.Combine(LogsDirectoryPath, "tidytop.log");
     }
 
     public string RootDirectory { get; }
     public string LayoutFilePath { get; }
+    public string LayoutBackupFilePath { get; }
     public string SettingsFilePath { get; }
+    public string SettingsBackupFilePath { get; }
+    public string LogsDirectoryPath { get; }
+    public string LogFilePath { get; }
 
     public static AppDataPaths CreateDefault()
     {
