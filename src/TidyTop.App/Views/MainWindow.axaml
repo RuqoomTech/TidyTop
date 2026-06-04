@@ -334,6 +334,7 @@
                 <Button Classes="toolbar-button" Content="Auto layout" Click="OnAutoArrangeClick"/>
                 <Button Classes="toolbar-button" Content="{Binding NativeDesktopIconsButtonText}" IsEnabled="{Binding EnableNativeDesktopIconControl}" Click="OnToggleNativeDesktopIconsClick"/>
                 <Button Classes="toolbar-button" Content="Restore icons" Click="OnRestoreNativeDesktopIconsClick"/>
+                <Button Classes="toolbar-button" Content="Settings" Click="OnOpenSettingsClick"/>
                 <Button Classes="toolbar-button" Content="{Binding OverlayVisibilityText}" Click="OnHideTidyTopClick"/>
                 <Button Classes="toolbar-button" Content="Save" Command="{Binding SaveLayoutCommand}"/>
                 <Button Classes="toolbar-button" Content="Reset" Command="{Binding ResetLayoutCommand}"/>
@@ -410,6 +411,135 @@
                                 Command="{Binding SaveSmartBoxEditorCommand}"/>
                     </Grid>
                 </StackPanel>
+            </Border>
+        </Grid>
+
+
+        <Grid Background="#77000000" IsVisible="{Binding IsSettingsPanelOpen}">
+            <Border Background="#F0111827"
+                    BorderBrush="#3DFFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="24"
+                    Padding="0"
+                    Width="780"
+                    MaxHeight="720"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                <DockPanel LastChildFill="True">
+                    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="22,20,18,14">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Settings &amp; diagnostics"
+                                       Foreground="#F8FAFC"
+                                       FontSize="20"
+                                       FontWeight="SemiBold"/>
+                            <TextBlock Text="Safe controls for desktop integration, emergency recovery, and runtime state."
+                                       Foreground="#94A3B8"
+                                       FontSize="12"/>
+                        </StackPanel>
+                        <Button Grid.Column="1"
+                                Classes="icon-button"
+                                Content="×"
+                                Command="{Binding CloseSettingsCommand}"/>
+                    </Grid>
+
+                    <Grid DockPanel.Dock="Bottom" ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="10" Margin="22,14,22,22">
+                        <Button Classes="editor-button danger" Content="Reset everything" Click="OnResetEverythingClick"/>
+                        <Button Grid.Column="1" Classes="editor-button secondary" Content="Reset settings" Click="OnResetSettingsClick"/>
+                        <TextBlock Grid.Column="2"
+                                   Text="Reset actions never delete your real desktop files."
+                                   Foreground="#94A3B8"
+                                   FontSize="11"
+                                   VerticalAlignment="Center"/>
+                        <Button Grid.Column="3" Classes="editor-button secondary" Content="Close" Command="{Binding CloseSettingsCommand}"/>
+                        <Button Grid.Column="4" Classes="editor-button" Content="Save settings" Click="OnSaveSettingsClick"/>
+                    </Grid>
+
+                    <ScrollViewer Margin="22,0,22,0" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="14">
+                            <Border CornerRadius="18" Background="#99121A2A" BorderBrush="#2434475C" BorderThickness="1" Padding="16">
+                                <StackPanel Spacing="12">
+                                    <TextBlock Text="Runtime settings" Foreground="#F8FAFC" FontSize="15" FontWeight="SemiBold"/>
+                                    <UniformGrid Columns="2">
+                                        <CheckBox Content="Desktop overlay host" IsChecked="{Binding EnableDesktopOverlayHost, Mode=TwoWay}" Foreground="#CBD5E1" Margin="0,0,16,10"/>
+                                        <CheckBox Content="Tray icon" IsChecked="{Binding EnableTrayIcon, Mode=TwoWay}" Foreground="#CBD5E1" Margin="0,0,0,10"/>
+                                        <CheckBox Content="Global hotkey" IsChecked="{Binding EnableGlobalHotkey, Mode=TwoWay}" Foreground="#CBD5E1" Margin="0,0,16,10"/>
+                                        <CheckBox Content="Drag and drop" IsChecked="{Binding EnableDragDrop, Mode=TwoWay}" Foreground="#CBD5E1" Margin="0,0,0,10"/>
+                                        <CheckBox Content="Start hidden" IsChecked="{Binding StartHidden, Mode=TwoWay}" Foreground="#CBD5E1" Margin="0,0,16,10"/>
+                                        <CheckBox Content="Auto-organize on refresh" IsChecked="{Binding EnableAutoOrganizeOnRefresh, Mode=TwoWay}" Foreground="#CBD5E1" Margin="0,0,0,10"/>
+                                    </UniformGrid>
+                                    <Grid ColumnDefinitions="160,*" ColumnSpacing="12">
+                                        <TextBlock Text="Hotkey" Foreground="#CBD5E1" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Column="1"
+                                                 Text="{Binding GlobalHotkey, Mode=TwoWay}"
+                                                 Watermark="Ctrl+Alt+T"
+                                                 Foreground="#F8FAFC"
+                                                 Background="#1E293B"
+                                                 BorderBrush="#334155"
+                                                 CornerRadius="12"
+                                                 Padding="10,7"/>
+                                    </Grid>
+                                    <TextBlock Text="Note: the current hotkey engine supports Ctrl+Alt+T. The field is saved for future configurable hotkeys."
+                                               Foreground="#94A3B8"
+                                               FontSize="11"
+                                               TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border CornerRadius="18" Background="#99121A2A" BorderBrush="#2434475C" BorderThickness="1" Padding="16">
+                                <StackPanel Spacing="12">
+                                    <TextBlock Text="Native Windows desktop icons" Foreground="#F8FAFC" FontSize="15" FontWeight="SemiBold"/>
+                                    <TextBlock Text="TidyTop only hides or shows Explorer's desktop icon view. It never deletes, moves, or edits your real desktop files."
+                                               Foreground="#94A3B8"
+                                               FontSize="11"
+                                               TextWrapping="Wrap"/>
+                                    <UniformGrid Columns="2">
+                                        <CheckBox Content="Enable native icon control" IsChecked="{Binding EnableNativeDesktopIconControl, Mode=TwoWay}" Foreground="#CBD5E1" Margin="0,0,16,10"/>
+                                        <CheckBox Content="Hide icons when TidyTop runs" IsChecked="{Binding HideNativeDesktopIcons, Mode=TwoWay}" IsEnabled="{Binding EnableNativeDesktopIconControl}" Foreground="#CBD5E1" Margin="0,0,0,10"/>
+                                    </UniformGrid>
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <Button Classes="editor-button secondary" Content="Restore Windows icons" Click="OnRestoreNativeDesktopIconsClick"/>
+                                        <Button Classes="editor-button secondary" Content="Reset layout" Command="{Binding ResetLayoutCommand}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <Border CornerRadius="18" Background="#99121A2A" BorderBrush="#2434475C" BorderThickness="1" Padding="16">
+                                <StackPanel Spacing="12">
+                                    <TextBlock Text="Diagnostics" Foreground="#F8FAFC" FontSize="15" FontWeight="SemiBold"/>
+                                    <Grid ColumnDefinitions="210,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="7" ColumnSpacing="12">
+                                        <TextBlock Grid.Row="0" Text="Overlay" Foreground="#94A3B8"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding OverlayDiagnosticText}" Foreground="#E2E8F0"/>
+                                        <TextBlock Grid.Row="1" Text="Desktop host" Foreground="#94A3B8"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding OverlayHostDiagnosticText}" Foreground="#E2E8F0"/>
+                                        <TextBlock Grid.Row="2" Text="Native icons" Foreground="#94A3B8"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding NativeIconsDiagnosticText}" Foreground="#E2E8F0"/>
+                                        <TextBlock Grid.Row="3" Text="Tray" Foreground="#94A3B8"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding TrayDiagnosticText}" Foreground="#E2E8F0"/>
+                                        <TextBlock Grid.Row="4" Text="Hotkey" Foreground="#94A3B8"/>
+                                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding HotkeyDiagnosticText}" Foreground="#E2E8F0"/>
+                                        <TextBlock Grid.Row="5" Text="Layout file" Foreground="#94A3B8"/>
+                                        <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding LayoutDiagnosticText}" Foreground="#E2E8F0"/>
+                                        <TextBlock Grid.Row="6" Text="Settings file" Foreground="#94A3B8"/>
+                                        <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding SettingsDiagnosticText}" Foreground="#E2E8F0"/>
+                                        <TextBlock Grid.Row="7" Text="Last error" Foreground="#94A3B8"/>
+                                        <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding LastErrorDiagnosticText}" Foreground="#FCA5A5" TextWrapping="Wrap"/>
+                                    </Grid>
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <Button Classes="editor-button secondary" Content="Open logs folder" Click="OnOpenLogsFolderClick"/>
+                                        <Button Classes="editor-button secondary" Content="Open app data folder" Click="OnOpenSettingsFolderClick"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <Border CornerRadius="18" Background="#661E293B" BorderBrush="#2434475C" BorderThickness="1" Padding="14">
+                                <TextBlock Text="Safety rule: keep either tray icon or global hotkey enabled if Start hidden is enabled, so you can always bring TidyTop back."
+                                           Foreground="#CBD5E1"
+                                           FontSize="11"
+                                           TextWrapping="Wrap"/>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
             </Border>
         </Grid>
 

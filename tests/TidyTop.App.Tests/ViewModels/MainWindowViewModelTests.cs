@@ -147,6 +147,66 @@ public class MainWindowViewModelTests
         Assert.All(viewModel.SmartBoxes, box => Assert.False(box.IsDropTarget));
     }
 
+
+
+    [Fact]
+    public async Task SaveSettingsAsync_PersistsSettingsAndUpdatesDiagnostics()
+    {
+        var service = new FakeWorkspaceService(CreateWorkspace());
+        var launcher = new FakeDesktopItemLauncher();
+        var settingsStore = new FakeAppSettingsStore();
+        var viewModel = new MainWindowViewModel(service, launcher, settingsStore);
+
+        await viewModel.InitializeAsync();
+        viewModel.StartHidden = true;
+        viewModel.EnableGlobalHotkey = true;
+        viewModel.EnableTrayIcon = false;
+        viewModel.EnableNativeDesktopIconControl = false;
+        viewModel.HideNativeDesktopIcons = true;
+
+        var saved = await viewModel.SaveSettingsAsync();
+
+        Assert.True(saved);
+        Assert.True(settingsStore.LastSaved is { StartHidden: true });
+        Assert.True(settingsStore.LastSaved is { EnableTrayIcon: false });
+        Assert.True(settingsStore.LastSaved is { HideNativeDesktopIcons: false });
+        Assert.Equal("Loaded", viewModel.SettingsDiagnosticText);
+    }
+
+    [Fact]
+    public async Task SaveSettingsAsync_BlocksUnsafeStartHiddenWithoutRecoveryControls()
+    {
+        var service = new FakeWorkspaceService(CreateWorkspace());
+        var launcher = new FakeDesktopItemLauncher();
+        var settingsStore = new FakeAppSettingsStore();
+        var viewModel = new MainWindowViewModel(service, launcher, settingsStore);
+
+        await viewModel.InitializeAsync();
+        viewModel.StartHidden = true;
+        viewModel.EnableTrayIcon = false;
+        viewModel.EnableGlobalHotkey = false;
+
+        var saved = await viewModel.SaveSettingsAsync();
+
+        Assert.False(saved);
+        Assert.Contains("Safety guard", viewModel.LastErrorDiagnosticText);
+    }
+
+    [Fact]
+    public async Task OpenSettingsPanel_UpdatesRuntimeState()
+    {
+        var service = new FakeWorkspaceService(CreateWorkspace());
+        var launcher = new FakeDesktopItemLauncher();
+        var settingsStore = new FakeAppSettingsStore();
+        var viewModel = new MainWindowViewModel(service, launcher, settingsStore);
+
+        await viewModel.InitializeAsync();
+        viewModel.OpenSettingsPanel();
+
+        Assert.True(viewModel.IsSettingsPanelOpen);
+        Assert.True(viewModel.RuntimeState.IsSettingsPanelOpen);
+    }
+
     private static DesktopWorkspace CreateWorkspace(int extraBoxes = 0)
     {
         var item = new DesktopItem

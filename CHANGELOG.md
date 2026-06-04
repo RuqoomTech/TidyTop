@@ -6,6 +6,9 @@ All notable project changes should be recorded here.
 
 ### Added
 
+- Settings & Diagnostics pass: feature flag panel, emergency controls, reset actions, diagnostics state, and log/app-data folder shortcuts.
+- Safety guard that blocks Start hidden when both tray and global hotkey are disabled.
+- Runtime diagnostics for overlay visibility, desktop host attachment, native icons, tray, hotkey, layout load, settings load, and last error.
 - Stability hardening pass: runtime state model, file logging, feature flags, and safer desktop integration guards.
 - Atomic JSON persistence for layout/settings with `.tmp` writes and `.bak` recovery.
 - Emergency **Restore Windows icons** toolbar/tray action.

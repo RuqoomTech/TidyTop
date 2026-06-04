@@ -14,12 +14,15 @@ public sealed class MainWindowViewModel : ViewModelBase
     private bool _hasLoaded;
     private AppSettings _settings = new();
     private bool _isOverlayVisible = true;
+    private bool _startHidden;
     private bool _hideNativeDesktopIcons;
     private bool _enableDesktopOverlayHost = true;
-    private bool _enableNativeDesktopIconControl;
+    private bool _enableNativeDesktopIconControl = true;
     private bool _enableTrayIcon = true;
     private bool _enableGlobalHotkey = true;
     private bool _enableDragDrop = true;
+    private bool _runOnStartup;
+    private bool _enableAutoOrganizeOnRefresh = true;
     private string _globalHotkey = "Ctrl+Alt+T";
     private int _totalItemCount;
     private int _organizedItemCount;
@@ -30,6 +33,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     private int _dragGhostX;
     private int _dragGhostY;
     private bool _isSmartBoxEditorOpen;
+    private bool _isSettingsPanelOpen;
     private Guid? _editingSmartBoxId;
     private string _editingSmartBoxTitle = string.Empty;
     private string _editingSmartBoxSubtitle = string.Empty;
@@ -47,6 +51,19 @@ public sealed class MainWindowViewModel : ViewModelBase
         AddSmartBoxCommand = new AsyncRelayCommand(AddSmartBoxAsync);
         ResetLayoutCommand = new AsyncRelayCommand(ResetLayoutAsync);
         SaveLayoutCommand = new AsyncRelayCommand(SaveLayoutAsync);
+        SaveSettingsCommand = new AsyncRelayCommand(async () => { await SaveSettingsAsync(); });
+        ResetSettingsCommand = new AsyncRelayCommand(ResetSettingsAsync);
+        ResetEverythingCommand = new AsyncRelayCommand(ResetEverythingAsync);
+        OpenSettingsCommand = new AsyncRelayCommand(() =>
+        {
+            OpenSettingsPanel();
+            return Task.CompletedTask;
+        });
+        CloseSettingsCommand = new AsyncRelayCommand(() =>
+        {
+            CloseSettingsPanel();
+            return Task.CompletedTask;
+        });
         SaveSmartBoxEditorCommand = new AsyncRelayCommand(SaveSmartBoxEditorAsync);
         DeleteSmartBoxCommand = new AsyncRelayCommand(DeleteEditingSmartBoxAsync, () => EditingSmartBoxCanDelete);
         CancelSmartBoxEditorCommand = new AsyncRelayCommand(() =>
@@ -65,6 +82,11 @@ public sealed class MainWindowViewModel : ViewModelBase
     public AsyncRelayCommand AddSmartBoxCommand { get; }
     public AsyncRelayCommand ResetLayoutCommand { get; }
     public AsyncRelayCommand SaveLayoutCommand { get; }
+    public AsyncRelayCommand SaveSettingsCommand { get; }
+    public AsyncRelayCommand ResetSettingsCommand { get; }
+    public AsyncRelayCommand ResetEverythingCommand { get; }
+    public AsyncRelayCommand OpenSettingsCommand { get; }
+    public AsyncRelayCommand CloseSettingsCommand { get; }
     public AsyncRelayCommand SaveSmartBoxEditorCommand { get; }
     public AsyncRelayCommand DeleteSmartBoxCommand { get; }
     public AsyncRelayCommand CancelSmartBoxEditorCommand { get; }
@@ -98,13 +120,23 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
     }
 
+    public bool StartHidden
+    {
+        get => _startHidden;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _startHidden, value);
+            this.RaisePropertyChanged(nameof(StartHiddenStatusText));
+        }
+    }
+
     public bool HideNativeDesktopIcons
     {
         get => _hideNativeDesktopIcons;
-        private set
+        set
         {
-            this.RaiseAndSetIfChanged(ref _hideNativeDesktopIcons, value);
-            RuntimeState.AreNativeIconsHidden = value;
+            this.RaiseAndSetIfChanged(ref _hideNativeDesktopIcons, EnableNativeDesktopIconControl && value);
+            RuntimeState.AreNativeIconsHidden = _hideNativeDesktopIcons;
             RaiseDesktopIntegrationPropertiesChanged();
         }
     }
@@ -112,7 +144,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     public bool EnableDesktopOverlayHost
     {
         get => _enableDesktopOverlayHost;
-        private set
+        set
         {
             this.RaiseAndSetIfChanged(ref _enableDesktopOverlayHost, value);
             RaiseDesktopIntegrationPropertiesChanged();
@@ -122,9 +154,14 @@ public sealed class MainWindowViewModel : ViewModelBase
     public bool EnableNativeDesktopIconControl
     {
         get => _enableNativeDesktopIconControl;
-        private set
+        set
         {
             this.RaiseAndSetIfChanged(ref _enableNativeDesktopIconControl, value);
+            if (!value)
+            {
+                HideNativeDesktopIcons = false;
+            }
+
             RaiseDesktopIntegrationPropertiesChanged();
         }
     }
@@ -132,7 +169,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     public bool EnableTrayIcon
     {
         get => _enableTrayIcon;
-        private set
+        set
         {
             this.RaiseAndSetIfChanged(ref _enableTrayIcon, value);
             RaiseDesktopIntegrationPropertiesChanged();
@@ -142,7 +179,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     public bool EnableGlobalHotkey
     {
         get => _enableGlobalHotkey;
-        private set
+        set
         {
             this.RaiseAndSetIfChanged(ref _enableGlobalHotkey, value);
             RaiseDesktopIntegrationPropertiesChanged();
@@ -152,16 +189,38 @@ public sealed class MainWindowViewModel : ViewModelBase
     public bool EnableDragDrop
     {
         get => _enableDragDrop;
-        private set => this.RaiseAndSetIfChanged(ref _enableDragDrop, value);
+        set => this.RaiseAndSetIfChanged(ref _enableDragDrop, value);
+    }
+
+    public bool RunOnStartup
+    {
+        get => _runOnStartup;
+        set => this.RaiseAndSetIfChanged(ref _runOnStartup, value);
+    }
+
+    public bool EnableAutoOrganizeOnRefresh
+    {
+        get => _enableAutoOrganizeOnRefresh;
+        set => this.RaiseAndSetIfChanged(ref _enableAutoOrganizeOnRefresh, value);
     }
 
     public string GlobalHotkey
     {
         get => _globalHotkey;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _globalHotkey, string.IsNullOrWhiteSpace(value) ? "Ctrl+Alt+T" : value.Trim());
+            RaiseDesktopIntegrationPropertiesChanged();
+        }
+    }
+
+    public bool IsSettingsPanelOpen
+    {
+        get => _isSettingsPanelOpen;
         private set
         {
-            this.RaiseAndSetIfChanged(ref _globalHotkey, value);
-            RaiseDesktopIntegrationPropertiesChanged();
+            this.RaiseAndSetIfChanged(ref _isSettingsPanelOpen, value);
+            RuntimeState.IsSettingsPanelOpen = value;
         }
     }
 
@@ -172,6 +231,16 @@ public sealed class MainWindowViewModel : ViewModelBase
         : HideNativeDesktopIcons ? "Managed icons" : "Safe mode";
     public string HotkeyStatusText => EnableGlobalHotkey ? GlobalHotkey : "Hotkey off";
     public string DesktopIntegrationText => $"{NativeDesktopIconsModeText} • {HotkeyStatusText}";
+    public string StartHiddenStatusText => StartHidden ? "Starts hidden" : "Starts visible";
+
+    public string OverlayDiagnosticText => RuntimeState.IsOverlayVisible ? "Visible" : "Hidden";
+    public string OverlayHostDiagnosticText => RuntimeState.IsDesktopOverlayAttached ? "Attached to desktop host" : "Normal overlay window";
+    public string NativeIconsDiagnosticText => RuntimeState.AreNativeIconsHidden ? "Hidden by TidyTop" : "Visible / safe";
+    public string HotkeyDiagnosticText => RuntimeState.IsGlobalHotkeyRegistered ? $"Registered ({GlobalHotkey})" : "Not registered";
+    public string TrayDiagnosticText => RuntimeState.IsTrayActive ? "Active" : "Inactive";
+    public string LayoutDiagnosticText => RuntimeState.IsLayoutLoaded ? "Loaded" : "Not loaded";
+    public string SettingsDiagnosticText => RuntimeState.AreSettingsLoaded ? "Loaded" : "Not loaded";
+    public string LastErrorDiagnosticText => string.IsNullOrWhiteSpace(RuntimeState.LastError) ? "None" : RuntimeState.LastError;
 
     public bool IsDraggingItem
     {
@@ -258,19 +327,42 @@ public sealed class MainWindowViewModel : ViewModelBase
         try
         {
             _settings = await _settingsStore.LoadAsync();
-            EnableDesktopOverlayHost = _settings.EnableDesktopOverlayHost;
-            EnableNativeDesktopIconControl = _settings.EnableNativeDesktopIconControl;
-            EnableTrayIcon = _settings.EnableTrayIcon;
-            HideNativeDesktopIcons = EnableNativeDesktopIconControl && _settings.HideNativeDesktopIcons;
-            EnableGlobalHotkey = _settings.EnableGlobalHotkey;
-            EnableDragDrop = _settings.EnableDragDrop;
-            GlobalHotkey = string.IsNullOrWhiteSpace(_settings.GlobalHotkey) ? "Ctrl+Alt+T" : _settings.GlobalHotkey;
-            IsOverlayVisible = !_settings.StartHidden;
+            ApplySettingsToViewModel(_settings);
+            RuntimeState.AreSettingsLoaded = true;
+            RaiseDiagnosticsChanged();
         }
         catch (Exception ex)
         {
-            Fail($"Could not load settings: {ex.Message}");
+            FailWithRuntimeError($"Could not load settings: {ex.Message}");
         }
+    }
+
+    private void ApplySettingsToViewModel(AppSettings settings)
+    {
+        StartHidden = settings.StartHidden;
+        EnableDesktopOverlayHost = settings.EnableDesktopOverlayHost;
+        EnableNativeDesktopIconControl = settings.EnableNativeDesktopIconControl;
+        EnableTrayIcon = settings.EnableTrayIcon;
+        HideNativeDesktopIcons = EnableNativeDesktopIconControl && settings.HideNativeDesktopIcons;
+        EnableGlobalHotkey = settings.EnableGlobalHotkey;
+        EnableDragDrop = settings.EnableDragDrop;
+        RunOnStartup = settings.RunOnStartup;
+        EnableAutoOrganizeOnRefresh = settings.EnableAutoOrganizeOnRefresh;
+        GlobalHotkey = string.IsNullOrWhiteSpace(settings.GlobalHotkey) ? "Ctrl+Alt+T" : settings.GlobalHotkey;
+    }
+
+    private void ApplyViewModelToSettings(AppSettings settings)
+    {
+        settings.StartHidden = StartHidden;
+        settings.EnableDesktopOverlayHost = EnableDesktopOverlayHost;
+        settings.EnableNativeDesktopIconControl = EnableNativeDesktopIconControl;
+        settings.HideNativeDesktopIcons = EnableNativeDesktopIconControl && HideNativeDesktopIcons;
+        settings.EnableTrayIcon = EnableTrayIcon;
+        settings.EnableGlobalHotkey = EnableGlobalHotkey;
+        settings.GlobalHotkey = string.IsNullOrWhiteSpace(GlobalHotkey) ? "Ctrl+Alt+T" : GlobalHotkey.Trim();
+        settings.EnableDragDrop = EnableDragDrop;
+        settings.RunOnStartup = RunOnStartup;
+        settings.EnableAutoOrganizeOnRefresh = EnableAutoOrganizeOnRefresh;
     }
 
     public bool ShouldStartHidden => _settings.StartHidden;
@@ -278,11 +370,37 @@ public sealed class MainWindowViewModel : ViewModelBase
     public void SetOverlayVisible(bool isVisible)
     {
         IsOverlayVisible = isVisible;
+        RaiseDiagnosticsChanged();
     }
 
     public void SetShuttingDown(bool isShuttingDown)
     {
         RuntimeState.IsShuttingDown = isShuttingDown;
+        RaiseDiagnosticsChanged();
+    }
+
+    public void SetDesktopOverlayAttached(bool isAttached)
+    {
+        RuntimeState.IsDesktopOverlayAttached = isAttached;
+        RaiseDiagnosticsChanged();
+    }
+
+    public void SetTrayActive(bool isActive)
+    {
+        RuntimeState.IsTrayActive = isActive;
+        RaiseDiagnosticsChanged();
+    }
+
+    public void SetGlobalHotkeyRegistered(bool isRegistered)
+    {
+        RuntimeState.IsGlobalHotkeyRegistered = isRegistered;
+        RaiseDiagnosticsChanged();
+    }
+
+    public void RecordRuntimeError(string message)
+    {
+        RuntimeState.LastError = message;
+        RaiseDiagnosticsChanged();
     }
 
     public async Task SetHideNativeDesktopIconsPreferenceAsync(bool hideNativeDesktopIcons)
@@ -317,6 +435,85 @@ public sealed class MainWindowViewModel : ViewModelBase
         await SetHideNativeDesktopIconsPreferenceAsync(!HideNativeDesktopIcons);
     }
 
+    public void OpenSettingsPanel()
+    {
+        IsSettingsPanelOpen = true;
+        StatusMessage = "Settings and diagnostics opened.";
+    }
+
+    public void CloseSettingsPanel()
+    {
+        IsSettingsPanelOpen = false;
+    }
+
+    public async Task<bool> SaveSettingsAsync()
+    {
+        try
+        {
+            if (!EnableNativeDesktopIconControl)
+            {
+                HideNativeDesktopIcons = false;
+            }
+
+            if (StartHidden && !EnableTrayIcon && !EnableGlobalHotkey)
+            {
+                FailWithRuntimeError("Safety guard: keep tray icon or global hotkey enabled when Start hidden is on.");
+                return false;
+            }
+
+            ApplyViewModelToSettings(_settings);
+            await _settingsStore.SaveAsync(_settings);
+            StatusMessage = "Settings saved. Runtime controls were refreshed.";
+            RuntimeState.AreSettingsLoaded = true;
+            RaiseDesktopIntegrationPropertiesChanged();
+            RaiseDiagnosticsChanged();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            FailWithRuntimeError($"Could not save settings: {ex.Message}");
+            return false;
+        }
+    }
+
+    private async Task ResetSettingsAsync()
+    {
+        try
+        {
+            BeginBusy("Resetting settings...");
+            _settings = new AppSettings();
+            ApplySettingsToViewModel(_settings);
+            await _settingsStore.SaveAsync(_settings);
+            EndBusy("Settings reset to safe defaults.");
+            RaiseDesktopIntegrationPropertiesChanged();
+            RaiseDiagnosticsChanged();
+        }
+        catch (Exception ex)
+        {
+            FailWithRuntimeError($"Could not reset settings: {ex.Message}");
+        }
+    }
+
+    private async Task ResetEverythingAsync()
+    {
+        try
+        {
+            BeginBusy("Resetting TidyTop data...");
+            _settings = new AppSettings();
+            ApplySettingsToViewModel(_settings);
+            await _settingsStore.SaveAsync(_settings);
+            var workspace = await _workspaceService.ResetLayoutAsync();
+            ApplyWorkspace(workspace);
+            EndBusy("TidyTop settings and layout were reset safely.");
+            RaiseDesktopIntegrationPropertiesChanged();
+            RaiseDiagnosticsChanged();
+        }
+        catch (Exception ex)
+        {
+            FailWithRuntimeError($"Could not reset TidyTop data: {ex.Message}");
+        }
+    }
+
     private async Task LoadAsync()
     {
         await RunWorkspaceOperationAsync("Loading desktop layout...", () => _workspaceService.LoadAsync());
@@ -344,10 +541,12 @@ public sealed class MainWindowViewModel : ViewModelBase
             BeginBusy("Saving layout...");
             await _workspaceService.SaveAsync();
             EndBusy("Layout saved.");
+            RuntimeState.IsLayoutLoaded = true;
+            RaiseDiagnosticsChanged();
         }
         catch (Exception ex)
         {
-            Fail($"Could not save layout: {ex.Message}");
+            FailWithRuntimeError($"Could not save layout: {ex.Message}");
         }
     }
 
@@ -363,7 +562,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Fail($"Could not open {desktopItem.Name}: {ex.Message}");
+            FailWithRuntimeError($"Could not open {desktopItem.Name}: {ex.Message}");
         }
     }
 
@@ -387,7 +586,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Fail($"Could not move {desktopItem.Name}: {ex.Message}");
+            FailWithRuntimeError($"Could not move {desktopItem.Name}: {ex.Message}");
         }
     }
 
@@ -404,7 +603,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Fail($"Could not move {desktopItem.Name}: {ex.Message}");
+            FailWithRuntimeError($"Could not move {desktopItem.Name}: {ex.Message}");
         }
     }
 
@@ -475,7 +674,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Fail($"Could not auto-arrange layout: {ex.Message}");
+            FailWithRuntimeError($"Could not auto-arrange layout: {ex.Message}");
         }
     }
 
@@ -496,7 +695,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Fail($"Could not save SmartBox position: {ex.Message}");
+            FailWithRuntimeError($"Could not save SmartBox position: {ex.Message}");
         }
     }
 
@@ -541,7 +740,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Fail($"Could not save SmartBox: {ex.Message}");
+            FailWithRuntimeError($"Could not save SmartBox: {ex.Message}");
         }
     }
 
@@ -562,7 +761,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Fail($"Could not delete SmartBox: {ex.Message}");
+            FailWithRuntimeError($"Could not delete SmartBox: {ex.Message}");
         }
     }
 
@@ -577,8 +776,15 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Fail($"TidyTop could not update the workspace: {ex.Message}");
+            FailWithRuntimeError($"TidyTop could not update the workspace: {ex.Message}");
         }
+    }
+
+    private void FailWithRuntimeError(string message)
+    {
+        RuntimeState.LastError = message;
+        Fail(message);
+        RaiseDiagnosticsChanged();
     }
 
     private void RaiseDesktopIntegrationPropertiesChanged()
@@ -591,6 +797,19 @@ public sealed class MainWindowViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(EnableDesktopOverlayHost));
         this.RaisePropertyChanged(nameof(EnableNativeDesktopIconControl));
         this.RaisePropertyChanged(nameof(EnableTrayIcon));
+        RaiseDiagnosticsChanged();
+    }
+
+    private void RaiseDiagnosticsChanged()
+    {
+        this.RaisePropertyChanged(nameof(OverlayDiagnosticText));
+        this.RaisePropertyChanged(nameof(OverlayHostDiagnosticText));
+        this.RaisePropertyChanged(nameof(NativeIconsDiagnosticText));
+        this.RaisePropertyChanged(nameof(HotkeyDiagnosticText));
+        this.RaisePropertyChanged(nameof(TrayDiagnosticText));
+        this.RaisePropertyChanged(nameof(LayoutDiagnosticText));
+        this.RaisePropertyChanged(nameof(SettingsDiagnosticText));
+        this.RaisePropertyChanged(nameof(LastErrorDiagnosticText));
     }
 
     private void ApplyWorkspace(DesktopWorkspace workspace)
@@ -604,6 +823,8 @@ public sealed class MainWindowViewModel : ViewModelBase
         TotalItemCount = workspace.TotalItemCount;
         OrganizedItemCount = workspace.OrganizedItemCount;
         BoxCount = workspace.BoxCount;
+        RuntimeState.IsLayoutLoaded = true;
         this.RaisePropertyChanged(nameof(SummaryText));
+        RaiseDiagnosticsChanged();
     }
 }

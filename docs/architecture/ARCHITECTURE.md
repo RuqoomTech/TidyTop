@@ -35,7 +35,8 @@ Main pieces:
 - `WindowsDesktopOverlayHost` — attaches TidyTop to the desktop WorkerW/Progman host.
 - `WindowsNativeDesktopIconService` — hides/shows the native Windows desktop icon view without modifying files.
 - `WindowsGlobalHotkeyService` — low-level Windows keyboard hook for `Ctrl+Alt+T`.
-- Avalonia `TrayIcon` — tray menu for show/hide, refresh, auto layout, native icon toggle, and exit.
+- Avalonia `TrayIcon` — tray menu for show/hide, refresh, auto layout, native icon toggle, settings, and exit.
+- Settings & Diagnostics panel — exposes feature flags, emergency recovery, reset actions, folders, and runtime state.
 
 ## Safety design
 
@@ -45,4 +46,4 @@ Manual organization stores only normalized file paths inside `layout.json`.
 
 Managed desktop mode hides the Explorer desktop icon view only. It does not change icon positions or file locations.
 
-On exit, TidyTop restores the native desktop icon visibility it captured at startup.
+On exit, TidyTop restores the native desktop icon visibility it captured at startup. The Settings panel also exposes an immediate Restore Windows icons action and reset controls for layout/settings recovery.

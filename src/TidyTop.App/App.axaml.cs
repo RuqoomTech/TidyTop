@@ -40,6 +40,7 @@ public sealed partial class App : Application
                 Services.GetRequiredService<IDesktopOverlayHost>(),
                 Services.GetRequiredService<INativeDesktopIconService>(),
                 Services.GetRequiredService<IGlobalHotkeyService>(),
+                Services.GetRequiredService<AppDataPaths>(),
                 logger)
             {
                 DataContext = Services.GetRequiredService<MainWindowViewModel>()

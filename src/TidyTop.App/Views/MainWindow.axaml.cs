@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using System.Diagnostics;
 using TidyTop.App.Services;
 using TidyTop.App.ViewModels;
 using TidyTop.Core.Services;
@@ -18,6 +19,7 @@ public partial class MainWindow : Window
     private readonly INativeDesktopIconService _nativeDesktopIconService;
     private readonly IGlobalHotkeyService _globalHotkeyService;
     private readonly IAppLogger _logger;
+    private readonly AppDataPaths _paths;
     private bool _initialized;
     private bool _isClosingFromTray;
     private bool _hasHiddenNativeIconsDuringSession;
@@ -30,16 +32,21 @@ public partial class MainWindow : Window
     private NativeMenuItem? _restoreNativeIconsTrayItem;
     private NativeMenuItem? _refreshTrayItem;
     private NativeMenuItem? _autoLayoutTrayItem;
+    private NativeMenuItem? _settingsTrayItem;
+
+    private MainWindowViewModel? ViewModel => DataContext as MainWindowViewModel;
 
     public MainWindow(
         IDesktopOverlayHost desktopOverlayHost,
         INativeDesktopIconService nativeDesktopIconService,
         IGlobalHotkeyService globalHotkeyService,
+        AppDataPaths paths,
         IAppLogger? logger = null)
     {
         _desktopOverlayHost = desktopOverlayHost;
         _nativeDesktopIconService = nativeDesktopIconService;
         _globalHotkeyService = globalHotkeyService;
+        _paths = paths;
         _logger = logger ?? NullAppLogger.Instance;
         InitializeComponent();
         Opened += OnOpened;
@@ -70,10 +77,7 @@ public partial class MainWindow : Window
             ApplyNativeDesktopIconPreference(viewModel.HideNativeDesktopIcons);
             ConfigureGlobalHotkey(viewModel.EnableGlobalHotkey);
 
-            if (viewModel.EnableTrayIcon)
-            {
-                ConfigureTrayIcon();
-            }
+            ApplyTrayIconPreference(viewModel.EnableTrayIcon);
 
             RefreshTrayMenuLabels();
 
@@ -103,10 +107,13 @@ public partial class MainWindow : Window
         try
         {
             _desktopOverlayHost.AttachToDesktop(this);
+            ViewModel?.SetDesktopOverlayAttached(true);
         }
         catch (Exception ex)
         {
             _logger.Error("Could not attach TidyTop to the Windows desktop host. Continuing as a normal borderless window.", ex);
+            ViewModel?.SetDesktopOverlayAttached(false);
+            ViewModel?.RecordRuntimeError($"Desktop host attach failed: {ex.Message}");
         }
     }
 
@@ -141,6 +148,10 @@ public partial class MainWindow : Window
             _restoreNativeIconsTrayItem.Click += async (_, _) => await RestoreNativeDesktopIconsAsync();
             menu.Items.Add(_restoreNativeIconsTrayItem);
 
+            _settingsTrayItem = new NativeMenuItem { Header = "Settings & diagnostics" };
+            _settingsTrayItem.Click += (_, _) => OpenSettingsPanelFromChrome();
+            menu.Items.Add(_settingsTrayItem);
+
             var exitItem = new NativeMenuItem { Header = "Exit safely" };
             exitItem.Click += (_, _) => ExitFromTray();
             menu.Items.Add(exitItem);
@@ -153,11 +164,39 @@ public partial class MainWindow : Window
             };
 
             TrySetTrayIconImage(_trayIcon);
+            ViewModel?.SetTrayActive(true);
         }
         catch (Exception ex)
         {
             _logger.Error("Could not initialize the TidyTop tray icon.", ex);
+            ViewModel?.SetTrayActive(false);
+            ViewModel?.RecordRuntimeError($"Tray initialization failed: {ex.Message}");
         }
+    }
+
+    private void ApplyTrayIconPreference(bool enabled)
+    {
+        if (enabled)
+        {
+            ConfigureTrayIcon();
+            if (_trayIcon is not null)
+            {
+                _trayIcon.IsVisible = true;
+            }
+            ViewModel?.SetTrayActive(_trayIcon is not null);
+            return;
+        }
+
+        _trayIcon?.Dispose();
+        _trayIcon = null;
+        ViewModel?.SetTrayActive(false);
+        _showHideTrayItem = null;
+        _nativeIconsTrayItem = null;
+        _restoreNativeIconsTrayItem = null;
+        _refreshTrayItem = null;
+        _autoLayoutTrayItem = null;
+        _settingsTrayItem = null;
+        ViewModel?.SetTrayActive(false);
     }
 
     private static void TrySetTrayIconImage(TrayIcon trayIcon)
@@ -179,6 +218,7 @@ public partial class MainWindow : Window
         {
             _globalHotkeyService.ToggleRequested -= OnGlobalHotkeyToggleRequested;
             _globalHotkeyService.Stop();
+            ViewModel?.SetGlobalHotkeyRegistered(false);
 
             if (!enabled)
             {
@@ -187,10 +227,13 @@ public partial class MainWindow : Window
 
             _globalHotkeyService.ToggleRequested += OnGlobalHotkeyToggleRequested;
             _globalHotkeyService.Start();
+            ViewModel?.SetGlobalHotkeyRegistered(_globalHotkeyService.IsRunning);
         }
         catch (Exception ex)
         {
             _logger.Error("Could not start the global TidyTop hotkey.", ex);
+            ViewModel?.SetGlobalHotkeyRegistered(false);
+            ViewModel?.RecordRuntimeError($"Global hotkey failed: {ex.Message}");
         }
     }
 
@@ -355,6 +398,7 @@ public partial class MainWindow : Window
         {
             _globalHotkeyService.ToggleRequested -= OnGlobalHotkeyToggleRequested;
             _globalHotkeyService.Stop();
+            ViewModel?.SetGlobalHotkeyRegistered(false);
         }
         catch (Exception ex)
         {
@@ -380,6 +424,7 @@ public partial class MainWindow : Window
 
         _trayIcon?.Dispose();
         _trayIcon = null;
+        ViewModel?.SetTrayActive(false);
     }
 
     private async void OnAutoArrangeClick(object? sender, RoutedEventArgs e)
@@ -407,6 +452,110 @@ public partial class MainWindow : Window
     {
         await RestoreNativeDesktopIconsAsync();
         e.Handled = true;
+    }
+
+    private void OnOpenSettingsClick(object? sender, RoutedEventArgs e)
+    {
+        OpenSettingsPanelFromChrome();
+        e.Handled = true;
+    }
+
+    private void OpenSettingsPanelFromChrome()
+    {
+        ShowTidyTop();
+        ViewModel?.OpenSettingsPanel();
+    }
+
+    private async void OnSaveSettingsClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            var saved = await viewModel.SaveSettingsAsync();
+            if (saved)
+            {
+                ApplyRuntimeSettingsFromViewModel(viewModel);
+                RefreshTrayMenuLabels();
+            }
+        }
+
+        e.Handled = true;
+    }
+
+    private async void OnResetSettingsClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            await viewModel.ResetSettingsCommand.ExecuteAsync();
+            await RestoreNativeDesktopIconsAsync();
+            ApplyRuntimeSettingsFromViewModel(viewModel);
+            RefreshTrayMenuLabels();
+        }
+
+        e.Handled = true;
+    }
+
+    private async void OnResetEverythingClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            await viewModel.ResetEverythingCommand.ExecuteAsync();
+            await RestoreNativeDesktopIconsAsync();
+            ApplyRuntimeSettingsFromViewModel(viewModel);
+            RefreshTrayMenuLabels();
+        }
+
+        e.Handled = true;
+    }
+
+    private void OnOpenLogsFolderClick(object? sender, RoutedEventArgs e)
+    {
+        OpenFolder(_paths.LogsDirectoryPath);
+        e.Handled = true;
+    }
+
+    private void OnOpenSettingsFolderClick(object? sender, RoutedEventArgs e)
+    {
+        OpenFolder(_paths.RootDirectory);
+        e.Handled = true;
+    }
+
+    private void ApplyRuntimeSettingsFromViewModel(MainWindowViewModel viewModel)
+    {
+        ApplyTrayIconPreference(viewModel.EnableTrayIcon);
+        ConfigureGlobalHotkey(viewModel.EnableGlobalHotkey);
+
+        if (!viewModel.EnableNativeDesktopIconControl)
+        {
+            _nativeDesktopIconService.SetIconsVisible(true);
+            _forceKeepNativeIconsVisibleOnExit = true;
+        }
+        else
+        {
+            ApplyNativeDesktopIconPreference(viewModel.HideNativeDesktopIcons);
+        }
+
+        if (viewModel.IsOverlayVisible && viewModel.EnableDesktopOverlayHost)
+        {
+            AttachToDesktopSafely();
+        }
+    }
+
+    private void OpenFolder(string path)
+    {
+        try
+        {
+            Directory.CreateDirectory(path);
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = path,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Could not open folder: {path}", ex);
+            ViewModel?.RecordRuntimeError($"Could not open folder: {ex.Message}");
+        }
     }
 
     private void OnSmartBoxEditClick(object? sender, RoutedEventArgs e)

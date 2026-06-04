@@ -28,6 +28,7 @@ The repository now matches the real MVP scope:
 - drag an item from one SmartBox and drop it onto another SmartBox to manually reassign it
 - tray menu, quick hide/show, global hotkey, and safer native desktop icon controls
 - emergency **Restore icons** action if Explorer's native icon view does not reappear immediately
+- Settings & Diagnostics panel for feature flags, emergency actions, reset controls, folders, and live runtime state
 
 ## MVP product loop
 
@@ -100,7 +101,8 @@ If Windows desktop icons do not reappear while TidyTop is running:
 1. Press **Restore icons** in the toolbar.
 2. Or use tray menu → **Restore Windows icons**.
 3. If needed, exit TidyTop from the tray menu.
-4. Check `%APPDATA%/TidyTop/logs/tidytop.log` for diagnostics.
+4. Open **Settings** → **Diagnostics** to inspect runtime state.
+5. Check `%APPDATA%/TidyTop/logs/tidytop.log` for details.
 
 ## Development rule
 

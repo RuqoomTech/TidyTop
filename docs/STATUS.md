@@ -16,6 +16,7 @@ TidyTop is a Windows-first desktop organizer prototype. The current focus is sta
 - Supports `Ctrl+Alt+T` as the first global quick-hide hotkey.
 - Supports native desktop icon visibility control without touching real files.
 - Adds an always-available **Restore icons** command for the Windows desktop icon bug/safety case.
+- Provides a Settings & Diagnostics panel for feature flags, safety controls, reset actions, folders, and live runtime state.
 - Persists layout to `%APPDATA%/TidyTop/layout.json`.
 - Persists settings to `%APPDATA%/TidyTop/settings.json`.
 - Writes logs to `%APPDATA%/TidyTop/logs/tidytop.log`.
@@ -36,7 +37,6 @@ TidyTop is a Windows-first desktop organizer prototype. The current focus is sta
 
 ## Still not complete
 
-- No full settings window yet.
 - No startup registration implementation yet.
 - No multi-monitor final behavior yet.
 - No collapse/expand behavior yet.
@@ -50,8 +50,8 @@ TidyTop should be treated as a **desktop overlay organizer MVP**, not a finished
 
 The next release candidate should focus on:
 
-1. Settings window for feature flags and safety controls.
-2. Collapse / expand SmartBoxes.
-3. Lock / unlock layout.
-4. Multi-monitor handling.
-5. Installer and first-run onboarding.
+1. Collapse / expand SmartBoxes.
+2. Lock / unlock layout.
+3. Multi-monitor handling.
+4. Installer and first-run onboarding.
+5. Settings polish and real startup registration.

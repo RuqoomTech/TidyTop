@@ -39,7 +39,18 @@ dotnet run --project src/TidyTop.App/TidyTop.App.csproj
 7. Use the toolbar or tray menu to show native desktop icons again.
 8. If native icons do not immediately reappear, use **Restore icons** in the toolbar or **Restore Windows icons** in the tray.
 9. Exit TidyTop from the tray menu; native desktop icons should be visible if TidyTop hid them during the session.
-10. Check `%APPDATA%/TidyTop/logs/tidytop.log` if a desktop integration step fails.
+10. Open **Settings** and confirm the Diagnostics section reflects overlay, tray, hotkey, icon, layout, and settings status.
+11. Use **Open logs folder** from Settings and confirm `%APPDATA%/TidyTop/logs/tidytop.log` is accessible if a desktop integration step fails.
+12. Use **Open app data folder** from Settings and confirm layout/settings files are visible.
+
+## Settings safety
+
+1. Open Settings.
+2. Turn on **Start hidden**.
+3. Turn off both **Tray icon** and **Global hotkey**.
+4. Press **Save settings**. TidyTop should reject this unsafe combination.
+5. Press **Reset settings** and confirm safe defaults return.
+6. Press **Restore Windows icons** and confirm native icons are visible.
 
 ## Persistence safety
 

@@ -24,11 +24,13 @@
 - [x] Add file logging under `%APPDATA%/TidyTop/logs`.
 - [x] Add feature flags for risky desktop integrations.
 - [x] Add runtime state model for safer UI/integration coordination.
+- [x] Build a Settings & Diagnostics panel for feature flags.
+- [x] Add a visible diagnostics panel for logs and desktop integration status.
+- [x] Add safe reset commands for layout, settings, and all local app data.
+- [x] Add quick links to logs and app data folders.
 
 ## Next
 
-- [ ] Build a Settings window/overlay for feature flags.
-- [ ] Add a visible diagnostics panel for logs and desktop integration status.
 - [ ] Add collapse/expand SmartBox state.
 - [ ] Add lock/unlock layout.
 - [ ] Add first-run onboarding.
@@ -41,6 +43,6 @@
 
 - [ ] Add a native desktop icon restore watchdog process or startup recovery task.
 - [ ] Add diagnostics when Explorer desktop host is unavailable.
-- [ ] Add a safe reset command for settings and layout.
+- [x] Add a safe reset command for settings and layout.
 - [ ] Add manual test checklist to release process.
 - [ ] Add crash simulation tests around desktop icon visibility.
