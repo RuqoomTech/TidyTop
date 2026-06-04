@@ -234,7 +234,6 @@
                             </Grid>
 
                             <Border Grid.RowSpan="3"
-                                    Panel.ZIndex="20"
                                     IsVisible="{Binding IsDropTarget}"
                                     Background="#334F9CFB"
                                     BorderBrush="#BF93C5FD"
@@ -256,7 +255,6 @@
                             </Border>
 
                             <Border Grid.RowSpan="3"
-                                    Panel.ZIndex="30"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Bottom"
                                     Width="24"
