@@ -1,11 +1,11 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
 using TidyTop.App.Services;
 using TidyTop.App.ViewModels;
 using TidyTop.App.Views;
-using Avalonia.Controls;
 
 namespace TidyTop.App;
 

@@ -68,6 +68,28 @@ public sealed class DesktopWorkspaceService : IDesktopWorkspaceService
         return workspace;
     }
 
+
+    public async Task UpdateSmartBoxGeometryAsync(
+        Guid smartBoxId,
+        int x,
+        int y,
+        int width,
+        int height,
+        CancellationToken cancellationToken = default)
+    {
+        _layout ??= await _layoutStore.LoadAsync(cancellationToken) ?? DefaultSmartBoxFactory.CreateDefaultLayout();
+
+        var smartBox = _layout.FindBox(smartBoxId);
+        if (smartBox is null)
+        {
+            return;
+        }
+
+        smartBox.SetGeometry(x, y, width, height);
+        _layout.UpdatedUtc = DateTimeOffset.UtcNow;
+        await _layoutStore.SaveAsync(_layout, cancellationToken);
+    }
+
     public async Task SaveAsync(CancellationToken cancellationToken = default)
     {
         if (_layout is not null)

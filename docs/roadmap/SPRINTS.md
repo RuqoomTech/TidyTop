@@ -33,7 +33,7 @@ Exit criteria:
 
 ## Sprint 2 — Item movement
 
-Goal: make manual organization real.
+Goal: make manual organization real. This is now the highest-priority next sprint after visual placement.
 
 Scope:
 
@@ -80,18 +80,17 @@ Exit criteria:
 
 ## Sprint 5 — Visual placement
 
+Status: done in desktop interaction pass.
+
 Goal: make boxes spatial.
 
-Already done:
+Completed scope:
 
 - SmartBoxes render on a canvas.
 - Saved placement values drive first render.
-
-Scope remaining:
-
-- Move SmartBox.
-- Resize SmartBox.
-- Persist placement changes from UI actions.
+- User can drag a SmartBox header to move it.
+- User can drag the bottom-right handle to resize it.
+- Placement changes are persisted to layout JSON on pointer release.
 
 Exit criteria:
 

@@ -27,4 +27,17 @@ public class SmartBoxTests
 
         Assert.False(box.Matches(item));
     }
+
+    [Fact]
+    public void SetGeometry_ClampsNegativePositionAndTooSmallSize()
+    {
+        var box = new SmartBox();
+
+        box.SetGeometry(-20, -10, 10, 20);
+
+        Assert.Equal(0, box.X);
+        Assert.Equal(0, box.Y);
+        Assert.Equal(SmartBox.MinimumWidth, box.Width);
+        Assert.Equal(SmartBox.MinimumHeight, box.Height);
+    }
 }

@@ -6,6 +6,9 @@ All notable project changes should be recorded here.
 
 ### Added
 
+- SmartBox desktop interactions: drag the header to move a box and drag the bottom-right handle to resize it.
+- Geometry autosave via `UpdateSmartBoxGeometryAsync`, writing SmartBox placement back to layout JSON on pointer release.
+- Core SmartBox geometry clamping with minimum width/height.
 - Desktop overlay foundation: borderless transparent main window hidden from taskbar.
 - Windows `WorkerW`/`Progman` host attachment service behind `IDesktopOverlayHost`.
 - Canvas-based SmartBox rendering using saved X/Y/width/height layout values.
@@ -44,7 +47,6 @@ All notable project changes should be recorded here.
 - Manual item movement between boxes.
 - Rename/delete SmartBox UI.
 - Drag/drop.
-- Visual SmartBox move/resize.
 - Full Fences-like native desktop icon hiding/replacement behavior.
 - Global quick hide/show hotkey.
 - Tray icon.

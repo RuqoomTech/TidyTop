@@ -4,7 +4,7 @@ Last updated: 2026-06-04
 
 ## Honest summary
 
-TidyTop is now a cleaner MVP foundation with a first Windows desktop-overlay pass. The app scans real desktop items, reconciles them into SmartBoxes, persists layout JSON, and renders SmartBoxes on a transparent canvas attached to the desktop host when possible.
+TidyTop is now a cleaner MVP foundation with a first Windows desktop-overlay pass. The app scans real desktop items, reconciles them into SmartBoxes, persists layout JSON, renders SmartBoxes on a transparent canvas attached to the desktop host when possible, and now supports moving/resizing SmartBoxes directly on the desktop.
 
 ## What works now
 
@@ -22,7 +22,10 @@ TidyTop is now a cleaner MVP foundation with a first Windows desktop-overlay pas
 | Settings persistence | Implemented as `%APPDATA%/TidyTop/settings.json`. |
 | UI rendering | Bound to `MainWindowViewModel` and `SmartBoxViewModel`. |
 | Desktop overlay shell | Implemented first pass: borderless, transparent, hidden from taskbar, and attached to WorkerW/Progman when possible. |
-| Canvas placement | Implemented first pass using `SmartBox.X`, `Y`, `Width`, and `Height`. |
+| Canvas placement | Implemented using `SmartBox.X`, `Y`, `Width`, and `Height`. |
+| Visual SmartBox movement | Implemented: drag a SmartBox header to move it. |
+| Visual SmartBox resizing | Implemented: drag the bottom-right handle to resize it. |
+| Geometry autosave | Implemented: move/resize commits to `%APPDATA%/TidyTop/layout.json` on pointer release. |
 | Manual SmartBox creation | Service and button create a basic manual SmartBox. No dialog yet. |
 | Tests | Meaningful first tests exist for rules, layout, persistence, reconciliation, and app VM. |
 
@@ -33,7 +36,6 @@ TidyTop is now a cleaner MVP foundation with a first Windows desktop-overlay pas
 | Rename/delete SmartBox from UI | Not implemented. |
 | Drag/drop an item into a SmartBox | Not implemented. |
 | Move item between SmartBoxes | Not implemented. |
-| Resize/move SmartBox visually | Not implemented; boxes render from saved coordinates but cannot be dragged/resized yet. |
 | Native desktop icon hiding/replacement | Not implemented; Windows desktop icons may still exist behind/above the TidyTop surface. |
 | Real file/shortcut icon extraction | Not implemented; emoji/fallback icons are used. |
 | Global hotkeys | Not implemented. |
@@ -58,6 +60,6 @@ v0.1 is done only when a fresh Windows user can:
 2. see real desktop items,
 3. create at least one SmartBox,
 4. move items into and out of SmartBoxes,
-5. rename, move, and resize a SmartBox,
+5. rename a SmartBox and move/resize it on the desktop,
 6. close and reopen the app with the same layout restored,
 7. hide/show TidyTop boxes quickly.

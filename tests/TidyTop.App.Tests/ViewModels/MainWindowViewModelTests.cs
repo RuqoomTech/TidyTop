@@ -87,6 +87,13 @@ public class MainWindowViewModelTests
             return Task.FromResult(_workspace);
         }
 
+        public Task UpdateSmartBoxGeometryAsync(Guid smartBoxId, int x, int y, int width, int height, CancellationToken cancellationToken = default)
+        {
+            var box = _workspace.Layout.FindBox(smartBoxId);
+            box?.SetGeometry(x, y, width, height);
+            return Task.CompletedTask;
+        }
+
         public Task SaveAsync(CancellationToken cancellationToken = default)
         {
             return Task.CompletedTask;

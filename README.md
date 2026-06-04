@@ -21,6 +21,7 @@ This rewrite makes the repository match the real MVP scope:
 - Avalonia UI bound to view models, not manual code-behind rendering
 - Windows desktop overlay host: borderless transparent desktop surface attached to WorkerW/Progman when possible
 - canvas-based SmartBox placement using saved X/Y/width/height values
+- visual SmartBox move/resize with autosaved geometry on pointer release
 - tests for rules, SmartBoxes, layout cloning, reconciliation, layout JSON round trip, and main view-model loading
 
 ## MVP product loop
@@ -35,7 +36,7 @@ The v0.1 loop is:
 6. Restore layout on restart.
 7. Add quick hide/show.
 
-The current rewrite completes the foundation for steps 1, 2, 3, 5, and 6 at the service/model level, and now includes the first Windows desktop-overlay pass. Manual drag/drop movement, visual move/resize, and native icon handling are the next major pieces.
+The current rewrite completes the foundation for steps 1, 2, 3, 5, and 6 at the service/model level, and now includes the first Windows desktop-overlay pass. Manual item movement/drag-drop and native icon handling are the next major pieces.
 
 ## Tech stack
 

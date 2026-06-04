@@ -8,5 +8,6 @@ public interface IDesktopWorkspaceService
     Task<DesktopWorkspace> RefreshAsync(CancellationToken cancellationToken = default);
     Task<DesktopWorkspace> AddSmartBoxAsync(string title, CancellationToken cancellationToken = default);
     Task<DesktopWorkspace> ResetLayoutAsync(CancellationToken cancellationToken = default);
+    Task UpdateSmartBoxGeometryAsync(Guid smartBoxId, int x, int y, int width, int height, CancellationToken cancellationToken = default);
     Task SaveAsync(CancellationToken cancellationToken = default);
 }

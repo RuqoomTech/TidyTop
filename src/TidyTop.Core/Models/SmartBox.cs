@@ -5,6 +5,9 @@ namespace TidyTop.Core.Models;
 /// </summary>
 public sealed class SmartBox
 {
+    public const int MinimumWidth = 220;
+    public const int MinimumHeight = 150;
+
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Title { get; set; } = "New SmartBox";
     public string Emoji { get; set; } = "📦";
@@ -32,6 +35,16 @@ public sealed class SmartBox
     public bool Matches(DesktopItem item)
     {
         return Behavior == SmartBoxBehavior.RuleBased && Rules.Any(rule => rule.Matches(item));
+    }
+
+
+    public void SetGeometry(int x, int y, int width, int height)
+    {
+        X = Math.Max(0, x);
+        Y = Math.Max(0, y);
+        Width = Math.Max(MinimumWidth, width);
+        Height = Math.Max(MinimumHeight, height);
+        UpdatedUtc = DateTimeOffset.UtcNow;
     }
 
     public bool ContainsItem(string path)

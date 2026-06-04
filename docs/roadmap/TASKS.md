@@ -105,18 +105,6 @@ Acceptance criteria:
 - Item can be returned to catch-all.
 - Assignment is removed from previous box.
 
-## Next: Milestone 5 — Visual placement
-
-### M5-01 — Move and resize SmartBox
-
-Status: todo.
-
-Acceptance criteria:
-
-- User can drag a SmartBox header to move.
-- User can resize a SmartBox.
-- Placement persists after restart.
-
 ## Next: Milestone 6 — Native desktop integration
 
 ### M6-01 — Safe native icon handling strategy
@@ -185,3 +173,15 @@ Notes:
 - Attempts to attach TidyTop to Windows WorkerW/Progman desktop host.
 - Switched SmartBox rendering from WrapPanel to Canvas using saved coordinates.
 - Native Windows desktop icon hiding/replacement is intentionally not done yet.
+
+### D-07 — Visual SmartBox move and resize
+
+Completed in desktop interaction pass.
+
+Notes:
+
+- SmartBox header dragging updates `X` and `Y` in the view model.
+- Bottom-right resize handle updates `Width` and `Height`.
+- Geometry is clamped to safe minimum values.
+- Layout is auto-saved through `IDesktopWorkspaceService.UpdateSmartBoxGeometryAsync(...)` on pointer release.
+- Added tests for core SmartBox geometry clamping.

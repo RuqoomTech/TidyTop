@@ -21,14 +21,15 @@ Run this on Windows after every change to the desktop-hosting code.
 4. Confirm the floating toolbar appears at the top-right.
 5. Press **Refresh** and confirm item counts update without crashing.
 6. Press **Add** and confirm a new SmartBox appears on the desktop surface.
-7. Press **Save**, close the app, run it again, and confirm the layout loads.
-8. Open a normal application window and confirm it appears above TidyTop.
-9. Minimize all normal windows and confirm TidyTop is visible again on the desktop.
+7. Drag a SmartBox header and confirm the box moves smoothly.
+8. Drag the bottom-right resize handle and confirm the box resizes without becoming too small.
+9. Close the app, run it again, and confirm the moved/resized layout loads from disk.
+10. Open a normal application window and confirm it appears above TidyTop.
+11. Minimize all normal windows and confirm TidyTop is visible again on the desktop.
 
 ## Known limitations for this pass
 
 - Native Windows desktop icons are not hidden or replaced yet.
-- SmartBoxes cannot yet be dragged or resized from the UI.
 - There is no tray icon or global hide/show hotkey yet.
 - Multi-monitor behavior is not final; the first pass sizes to the primary screen.
 

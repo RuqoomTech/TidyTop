@@ -97,6 +97,28 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
     }
 
+
+    public async Task CommitSmartBoxGeometryAsync(SmartBoxViewModel smartBox)
+    {
+        ArgumentNullException.ThrowIfNull(smartBox);
+
+        try
+        {
+            await _workspaceService.UpdateSmartBoxGeometryAsync(
+                smartBox.Id,
+                smartBox.X,
+                smartBox.Y,
+                smartBox.Width,
+                smartBox.Height);
+
+            StatusMessage = $"Saved position for {smartBox.Title}.";
+        }
+        catch (Exception ex)
+        {
+            Fail($"Could not save SmartBox position: {ex.Message}");
+        }
+    }
+
     private async Task RunWorkspaceOperationAsync(string busyMessage, Func<Task<DesktopWorkspace>> operation)
     {
         try
