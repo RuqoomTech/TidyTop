@@ -18,6 +18,13 @@ public sealed class SmartBoxViewModel : ReactiveObject
         Emoji = snapshot.SmartBox.Emoji;
         Behavior = snapshot.SmartBox.Behavior.ToString();
         IsSystemBox = snapshot.SmartBox.IsSystemBox;
+        IsLocked = snapshot.SmartBox.IsLocked;
+        IsCollapsed = snapshot.SmartBox.IsCollapsed;
+        IsVisible = snapshot.SmartBox.IsVisible;
+        X = snapshot.SmartBox.X;
+        Y = snapshot.SmartBox.Y;
+        Width = snapshot.SmartBox.Width;
+        Height = snapshot.SmartBox.Height;
         AccentBrush = ToBrush(snapshot.SmartBox.AccentColor);
         Items = new ObservableCollection<DesktopItemViewModel>(snapshot.Items.Select(item => new DesktopItemViewModel(item)));
     }
@@ -26,6 +33,13 @@ public sealed class SmartBoxViewModel : ReactiveObject
     public string Emoji { get; }
     public string Behavior { get; }
     public bool IsSystemBox { get; }
+    public bool IsLocked { get; }
+    public bool IsCollapsed { get; }
+    public bool IsVisible { get; }
+    public int X { get; }
+    public int Y { get; }
+    public int Width { get; }
+    public int Height { get; }
     public IBrush AccentBrush { get; }
     public ObservableCollection<DesktopItemViewModel> Items { get; }
     public int ItemCount => Items.Count;

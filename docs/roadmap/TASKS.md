@@ -107,16 +107,7 @@ Acceptance criteria:
 
 ## Next: Milestone 5 — Visual placement
 
-### M5-01 — Switch SmartBox surface from WrapPanel to Canvas
-
-Status: todo.
-
-Acceptance criteria:
-
-- SmartBox X/Y from layout model controls placement.
-- Window still supports scrolling or a large workspace safely.
-
-### M5-02 — Move and resize SmartBox
+### M5-01 — Move and resize SmartBox
 
 Status: todo.
 
@@ -126,10 +117,29 @@ Acceptance criteria:
 - User can resize a SmartBox.
 - Placement persists after restart.
 
+## Next: Milestone 6 — Native desktop integration
+
+### M6-01 — Safe native icon handling strategy
+
+Status: todo.
+
+Acceptance criteria:
+
+- Decide whether v0.1 hides native Windows desktop icons while TidyTop is running, leaves them visible, or uses another approach.
+- If hiding icons is chosen, app must restore them on normal exit and document recovery steps for crash cases.
+- No destructive file moves.
+
+### M6-02 — Real icon extraction
+
+Status: todo.
+
+Acceptance criteria:
+
+- File/folder/shortcut icons are shown instead of emoji fallback icons.
+- Missing icon extraction falls back safely.
+
 ## Later
 
-- Real icon extraction.
-- Overlay mode.
 - Global hotkey.
 - Tray icon.
 - Installer.
@@ -163,3 +173,15 @@ Notes:
 - Added scanner, reconciler, JSON layout store, JSON settings store, workspace service.
 - Replaced code-behind desktop grouping with view-model-bound UI.
 - Added tests for matching, reconciliation, persistence, and main VM behavior.
+
+### D-06 — First desktop overlay pass
+
+Completed in desktop-overlay pass.
+
+Notes:
+
+- Main window is now borderless, transparent, and hidden from the taskbar.
+- Added `IDesktopOverlayHost` and `WindowsDesktopOverlayHost`.
+- Attempts to attach TidyTop to Windows WorkerW/Progman desktop host.
+- Switched SmartBox rendering from WrapPanel to Canvas using saved coordinates.
+- Native Windows desktop icon hiding/replacement is intentionally not done yet.

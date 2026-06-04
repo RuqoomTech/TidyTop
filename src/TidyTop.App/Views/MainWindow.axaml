@@ -9,127 +9,142 @@
         Title="TidyTop"
         Width="1280"
         Height="820"
-        MinWidth="960"
-        MinHeight="640"
-        Background="#0F172A">
+        CanResize="False"
+        ShowInTaskbar="False"
+        SystemDecorations="None"
+        TransparencyLevelHint="Transparent"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        Background="Transparent">
 
-    <Grid RowDefinitions="Auto,*,Auto">
-        <Border Grid.Row="0"
-                Background="#111827"
-                BorderBrush="#1F2937"
-                BorderThickness="0,0,0,1"
-                Padding="20,14">
-            <Grid ColumnDefinitions="*,Auto">
-                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                    <TextBlock Text="🧹" FontSize="30" VerticalAlignment="Center"/>
-                    <StackPanel Spacing="1">
-                        <TextBlock Text="{Binding Title}" FontSize="23" FontWeight="Bold" Foreground="White"/>
-                        <TextBlock Text="{Binding Subtitle}" FontSize="12" Foreground="#94A3B8"/>
-                    </StackPanel>
-                </StackPanel>
+    <Grid ClipToBounds="False" Background="Transparent">
+        <ItemsControl ItemsSource="{Binding SmartBoxes}"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Canvas/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <Button Content="Refresh" Padding="14,8" Command="{Binding RefreshCommand}"/>
-                    <Button Content="Add SmartBox" Padding="14,8" Command="{Binding AddSmartBoxCommand}"/>
-                    <Button Content="Save" Padding="14,8" Command="{Binding SaveLayoutCommand}"/>
-                    <Button Content="Reset" Padding="14,8" Command="{Binding ResetLayoutCommand}"/>
-                </StackPanel>
-            </Grid>
-        </Border>
+            <ItemsControl.Styles>
+                <Style Selector="ContentPresenter">
+                    <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                    <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                    <Setter Property="IsVisible" Value="{Binding IsVisible}"/>
+                </Style>
+            </ItemsControl.Styles>
 
-        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding SmartBoxes}" Margin="18">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel Orientation="Horizontal"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:SmartBoxViewModel">
+                    <Border Width="{Binding Width}"
+                            Height="{Binding Height}"
+                            CornerRadius="14"
+                            BorderThickness="1"
+                            BorderBrush="{Binding AccentBrush}"
+                            Background="#D9162436"
+                            ClipToBounds="True">
+                        <Grid RowDefinitions="Auto,*">
+                            <Border Grid.Row="0"
+                                    Background="{Binding AccentBrush}"
+                                    CornerRadius="13,13,0,0"
+                                    Padding="12,9">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{Binding HeaderText}"
+                                               FontWeight="SemiBold"
+                                               Foreground="White"
+                                               TextTrimming="CharacterEllipsis"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Behavior}"
+                                               FontSize="10"
+                                               Foreground="#E2E8F0"
+                                               VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
 
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:SmartBoxViewModel">
-                        <Border Width="340"
-                                Height="286"
-                                Margin="8"
-                                CornerRadius="16"
-                                BorderThickness="1"
-                                BorderBrush="{Binding AccentBrush}"
-                                Background="#182235">
-                            <Grid RowDefinitions="Auto,*">
-                                <Border Grid.Row="0"
-                                        Background="{Binding AccentBrush}"
-                                        CornerRadius="15,15,0,0"
-                                        Padding="14,11">
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <TextBlock Text="{Binding HeaderText}"
-                                                   FontWeight="Bold"
-                                                   Foreground="White"
-                                                   TextTrimming="CharacterEllipsis"
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Column="1"
-                                                   Text="{Binding Behavior}"
-                                                   FontSize="11"
-                                                   Foreground="#E2E8F0"
-                                                   VerticalAlignment="Center"/>
-                                    </Grid>
-                                </Border>
+                            <ScrollViewer Grid.Row="1"
+                                          Padding="10"
+                                          VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Disabled">
+                                <ItemsControl ItemsSource="{Binding Items}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:DesktopItemViewModel">
+                                            <Border CornerRadius="9"
+                                                    Background="#1AFFFFFF"
+                                                    Padding="8,6"
+                                                    Margin="0,0,0,6">
+                                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                                                    <TextBlock Text="{Binding Icon}"
+                                                               FontSize="16"
+                                                               VerticalAlignment="Center"/>
+                                                    <StackPanel Grid.Column="1" Spacing="1">
+                                                        <TextBlock Text="{Binding Name}"
+                                                                   Foreground="White"
+                                                                   FontSize="12"
+                                                                   TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Text="{Binding FullPath}"
+                                                                   Foreground="#94A3B8"
+                                                                   FontSize="9"
+                                                                   TextTrimming="CharacterEllipsis"/>
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="2"
+                                                               Text="{Binding Subtitle}"
+                                                               Foreground="#CBD5E1"
+                                                               FontSize="9"
+                                                               VerticalAlignment="Center"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
 
-                                <ScrollViewer Grid.Row="1" Padding="12" VerticalScrollBarVisibility="Auto">
-                                    <ItemsControl ItemsSource="{Binding Items}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate x:DataType="vm:DesktopItemViewModel">
-                                                <Border CornerRadius="10"
-                                                        Background="#14FFFFFF"
-                                                        Padding="9,7"
-                                                        Margin="0,0,0,7">
-                                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="9">
-                                                        <TextBlock Text="{Binding Icon}" FontSize="17" VerticalAlignment="Center"/>
-                                                        <StackPanel Grid.Column="1" Spacing="1">
-                                                            <TextBlock Text="{Binding Name}"
-                                                                       Foreground="White"
-                                                                       FontSize="13"
-                                                                       TextTrimming="CharacterEllipsis"/>
-                                                            <TextBlock Text="{Binding FullPath}"
-                                                                       Foreground="#64748B"
-                                                                       FontSize="10"
-                                                                       TextTrimming="CharacterEllipsis"/>
-                                                        </StackPanel>
-                                                        <TextBlock Grid.Column="2"
-                                                                   Text="{Binding Subtitle}"
-                                                                   Foreground="#CBD5E1"
-                                                                   FontSize="10"
-                                                                   VerticalAlignment="Center"/>
-                                                    </Grid>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </ScrollViewer>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
-
-        <Border Grid.Row="2"
-                Background="#111827"
-                BorderBrush="#1F2937"
-                BorderThickness="0,1,0,0"
-                Padding="16,10">
-            <Grid ColumnDefinitions="*,Auto">
-                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding StatusMessage}" Foreground="#CBD5E1"/>
-                    <TextBlock Text="{Binding ErrorMessage}" Foreground="#FCA5A5" IsVisible="{Binding HasError}"/>
-                </StackPanel>
-                <TextBlock Grid.Column="1"
-                           Text="{Binding SummaryText}"
-                           Foreground="#94A3B8"
+        <Border HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Margin="16"
+                CornerRadius="18"
+                Background="#CC0F172A"
+                BorderBrush="#334155"
+                BorderThickness="1"
+                Padding="12,10">
+            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                <TextBlock Text="🧹 TidyTop"
+                           Foreground="White"
+                           FontWeight="SemiBold"
                            VerticalAlignment="Center"/>
-            </Grid>
+                <TextBlock Text="{Binding SummaryText}"
+                           Foreground="#CBD5E1"
+                           FontSize="11"
+                           VerticalAlignment="Center"/>
+                <Button Content="Refresh" Padding="10,6" Command="{Binding RefreshCommand}"/>
+                <Button Content="Add" Padding="10,6" Command="{Binding AddSmartBoxCommand}"/>
+                <Button Content="Save" Padding="10,6" Command="{Binding SaveLayoutCommand}"/>
+                <Button Content="Reset" Padding="10,6" Command="{Binding ResetLayoutCommand}"/>
+            </StackPanel>
         </Border>
 
-        <Grid Grid.RowSpan="3" Background="#99000000" IsVisible="{Binding IsBusy}">
-            <Border Background="#111827"
+        <Border HorizontalAlignment="Left"
+                VerticalAlignment="Bottom"
+                Margin="16"
+                CornerRadius="14"
+                Background="#CC0F172A"
+                BorderBrush="#334155"
+                BorderThickness="1"
+                Padding="12,8">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="{Binding StatusMessage}" Foreground="#CBD5E1"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="#FCA5A5" IsVisible="{Binding HasError}"/>
+            </StackPanel>
+        </Border>
+
+        <Grid Background="#33000000" IsVisible="{Binding IsBusy}">
+            <Border Background="#E6111827"
                     CornerRadius="14"
                     Padding="22"
                     HorizontalAlignment="Center"

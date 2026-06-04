@@ -82,24 +82,33 @@ Exit criteria:
 
 Goal: make boxes spatial.
 
-Scope:
+Already done:
 
-- Switch from wrap dashboard to canvas layout.
+- SmartBoxes render on a canvas.
+- Saved placement values drive first render.
+
+Scope remaining:
+
 - Move SmartBox.
 - Resize SmartBox.
-- Persist placement.
+- Persist placement changes from UI actions.
 
 Exit criteria:
 
 - User can position SmartBoxes and restart with placement restored.
 
-## Sprint 6 — Desktop overlay and quick hide
+## Sprint 6 — Desktop integration and quick hide
 
 Goal: make it usable as a daily desktop tool.
 
-Scope:
+Already done:
 
-- Overlay mode.
+- First desktop overlay surface.
+
+Scope remaining:
+
+- Normal window vs overlay toggle.
+- Safe native desktop icon strategy.
 - Global hotkey.
 - Tray icon.
 - Startup option.

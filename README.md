@@ -19,6 +19,8 @@ This rewrite makes the repository match the real MVP scope:
 - JSON layout persistence under `%APPDATA%/TidyTop/layout.json`
 - JSON settings store under `%APPDATA%/TidyTop/settings.json`
 - Avalonia UI bound to view models, not manual code-behind rendering
+- Windows desktop overlay host: borderless transparent desktop surface attached to WorkerW/Progman when possible
+- canvas-based SmartBox placement using saved X/Y/width/height values
 - tests for rules, SmartBoxes, layout cloning, reconciliation, layout JSON round trip, and main view-model loading
 
 ## MVP product loop
@@ -33,7 +35,7 @@ The v0.1 loop is:
 6. Restore layout on restart.
 7. Add quick hide/show.
 
-The current rewrite completes the foundation for steps 1, 2, 3, 5, and 6 at the service/model level. Manual drag/drop movement and real desktop overlay behavior are the next major pieces.
+The current rewrite completes the foundation for steps 1, 2, 3, 5, and 6 at the service/model level, and now includes the first Windows desktop-overlay pass. Manual drag/drop movement, visual move/resize, and native icon handling are the next major pieces.
 
 ## Tech stack
 
@@ -75,6 +77,8 @@ dotnet build
 ```bash
 dotnet run --project src/TidyTop.App/TidyTop.App.csproj
 ```
+
+On Windows, the app now attempts to appear directly on the desktop as a transparent overlay. If Explorer blocks the desktop host attachment, the app should still open as a borderless transparent window instead of crashing.
 
 ## Test
 

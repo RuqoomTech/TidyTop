@@ -1,10 +1,10 @@
 # Current Status
 
-Last updated: 2026-06-03
+Last updated: 2026-06-04
 
 ## Honest summary
 
-TidyTop is now a cleaner MVP foundation. The app is still not a full desktop overlay/organizer, but the core architecture now matches the intended scope: scan real desktop items, reconcile them into SmartBoxes, persist layout JSON, and expose the result through view models.
+TidyTop is now a cleaner MVP foundation with a first Windows desktop-overlay pass. The app scans real desktop items, reconciles them into SmartBoxes, persists layout JSON, and renders SmartBoxes on a transparent canvas attached to the desktop host when possible.
 
 ## What works now
 
@@ -21,6 +21,8 @@ TidyTop is now a cleaner MVP foundation. The app is still not a full desktop ove
 | Layout persistence | Implemented as `%APPDATA%/TidyTop/layout.json`. |
 | Settings persistence | Implemented as `%APPDATA%/TidyTop/settings.json`. |
 | UI rendering | Bound to `MainWindowViewModel` and `SmartBoxViewModel`. |
+| Desktop overlay shell | Implemented first pass: borderless, transparent, hidden from taskbar, and attached to WorkerW/Progman when possible. |
+| Canvas placement | Implemented first pass using `SmartBox.X`, `Y`, `Width`, and `Height`. |
 | Manual SmartBox creation | Service and button create a basic manual SmartBox. No dialog yet. |
 | Tests | Meaningful first tests exist for rules, layout, persistence, reconciliation, and app VM. |
 
@@ -31,9 +33,9 @@ TidyTop is now a cleaner MVP foundation. The app is still not a full desktop ove
 | Rename/delete SmartBox from UI | Not implemented. |
 | Drag/drop an item into a SmartBox | Not implemented. |
 | Move item between SmartBoxes | Not implemented. |
-| Resize/move SmartBox visually | Not implemented. |
-| Real desktop overlay/window positioning | Not implemented. |
-| Real file/shortcut icon extraction | Not implemented in this rewrite; emoji/fallback icons are used. |
+| Resize/move SmartBox visually | Not implemented; boxes render from saved coordinates but cannot be dragged/resized yet. |
+| Native desktop icon hiding/replacement | Not implemented; Windows desktop icons may still exist behind/above the TidyTop surface. |
+| Real file/shortcut icon extraction | Not implemented; emoji/fallback icons are used. |
 | Global hotkeys | Not implemented. |
 | Tray icon | Not implemented. |
 | Installer | Not implemented. |
@@ -41,7 +43,7 @@ TidyTop is now a cleaner MVP foundation. The app is still not a full desktop ove
 
 ## Current MVP risk
 
-The biggest risk is jumping into overlay/hotkey polish before finishing manual organization. The next proof should be:
+The biggest risk is assuming the overlay is already a complete Fences-like replacement. The next proof should be:
 
 1. create or rename a SmartBox,
 2. move an item into it,

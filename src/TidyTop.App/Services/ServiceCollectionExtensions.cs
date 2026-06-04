@@ -14,6 +14,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IAppSettingsStore, JsonAppSettingsStore>();
         services.AddSingleton<LayoutReconciler>();
         services.AddSingleton<IDesktopWorkspaceService, DesktopWorkspaceService>();
+        services.AddSingleton<IDesktopOverlayHost, WindowsDesktopOverlayHost>();
 
         services.AddTransient<MainWindowViewModel>();
 

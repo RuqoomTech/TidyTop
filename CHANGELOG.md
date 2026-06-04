@@ -4,6 +4,13 @@ All notable project changes should be recorded here.
 
 ## Unreleased
 
+### Added
+
+- Desktop overlay foundation: borderless transparent main window hidden from taskbar.
+- Windows `WorkerW`/`Progman` host attachment service behind `IDesktopOverlayHost`.
+- Canvas-based SmartBox rendering using saved X/Y/width/height layout values.
+
+
 ### Changed
 
 - Rewrote the codebase foundation around the real Windows-first MVP scope.
@@ -38,7 +45,7 @@ All notable project changes should be recorded here.
 - Rename/delete SmartBox UI.
 - Drag/drop.
 - Visual SmartBox move/resize.
-- Real desktop overlay behavior.
+- Full Fences-like native desktop icon hiding/replacement behavior.
 - Global quick hide/show hotkey.
 - Tray icon.
 - Installer packaging.

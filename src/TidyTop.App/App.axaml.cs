@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
+using TidyTop.App.Services;
 using TidyTop.App.ViewModels;
 using TidyTop.App.Views;
 
@@ -20,7 +21,8 @@ public sealed partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow
+            desktop.ShutdownMode = ShutdownMode.OnMainWindowClose;
+            desktop.MainWindow = new MainWindow(Services.GetRequiredService<IDesktopOverlayHost>())
             {
                 DataContext = Services.GetRequiredService<MainWindowViewModel>()
             };

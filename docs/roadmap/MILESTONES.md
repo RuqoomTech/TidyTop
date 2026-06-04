@@ -79,26 +79,37 @@ Success check:
 
 Goal: make SmartBoxes feel like movable desktop objects.
 
-Deliverables:
+Delivered foundation:
+
+- SmartBoxes render on a canvas.
+- Saved X/Y/width/height controls initial placement.
+
+Remaining deliverables:
 
 - Move SmartBox on canvas.
 - Resize SmartBox.
-- Persist X/Y/width/height.
+- Persist changed X/Y/width/height from UI actions.
 - Add grid/snapping later only if needed.
 
 Success check:
 
 - User can place SmartBoxes visually and restart with placement restored.
 
-## Milestone 5 — Desktop overlay behavior
+## Milestone 5 — Desktop integration behavior
 
 Goal: make the app feel like a desktop layer, not a dashboard.
 
-Deliverables:
+Delivered foundation:
 
-- Overlay mode.
+- First desktop overlay mode.
+- Borderless transparent window.
+- WorkerW/Progman desktop-host attachment attempt.
+
+Remaining deliverables:
+
 - Normal window vs overlay toggle.
 - Click-through rules.
+- Safe native desktop icon strategy.
 - Manual Windows smoke tests.
 
 Success check:
@@ -131,3 +142,8 @@ Deliverables:
 - Release notes.
 - Known issues.
 - Smoke test checklist.
+
+
+## Completed — Desktop overlay foundation
+
+First pass complete: borderless transparent desktop surface, WorkerW/Progman attachment attempt, and canvas-based SmartBox placement. Remaining work: drag/resize boxes, native icon strategy, tray/hotkeys.

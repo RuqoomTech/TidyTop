@@ -6,7 +6,7 @@
 src/
 ├── TidyTop.App/
 │   ├── Commands/        # UI command helpers
-│   ├── Services/        # App composition and DI registration
+│   ├── Services/        # App composition, DI registration, Windows desktop overlay host
 │   ├── ViewModels/      # UI state and command orchestration
 │   └── Views/           # Avalonia XAML windows
 └── TidyTop.Core/
@@ -54,6 +54,27 @@ Reason: desktop files change. A saved layout should remember assignment identity
 
 It should not own categorization, persistence, or scan rules.
 
+
+## Desktop overlay layer
+
+The app is Windows-first and now includes a desktop overlay adapter in `TidyTop.App.Services`:
+
+| Service | Responsibility |
+| --- | --- |
+| `IDesktopOverlayHost` | Interface used by the main window to request desktop-level hosting. |
+| `WindowsDesktopOverlayHost` | Uses Win32 `Progman`/`WorkerW` parenting to attach the Avalonia window to the Windows desktop host when possible. |
+
+The overlay is intentionally isolated in the app layer. Core remains unaware of windows, handles, or Win32 APIs.
+
+Current behavior:
+
+- the main window has no chrome, no taskbar entry, and a transparent background;
+- it sizes itself to the primary screen;
+- it renders SmartBoxes on a `Canvas` using persisted model coordinates;
+- if the desktop-host attachment fails, the app stays usable instead of crashing.
+
+Known limitation: this does not yet hide or replace native Windows desktop icons. That should be handled carefully as a separate milestone with a safe restore path.
+
 ## Persistence
 
 Current files:
@@ -72,6 +93,7 @@ The app project targets `net8.0-windows`. The Core project targets `net8.0` and 
 Future platform-specific work should be isolated behind interfaces:
 
 ```text
+IDesktopOverlayHost
 IDesktopPositionService
 IGlobalHotkeyService
 ITrayService
