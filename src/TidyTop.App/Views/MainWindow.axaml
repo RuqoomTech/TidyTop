@@ -17,6 +17,31 @@
         ExtendClientAreaChromeHints="NoChrome"
         Background="Transparent">
 
+    <Window.Styles>
+        <Style Selector="Button.toolbar-button">
+            <Setter Property="MinWidth" Value="76"/>
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#F8FAFC"/>
+            <Setter Property="Background" Value="#223244"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style Selector="Button.icon-button">
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#F8FAFC"/>
+            <Setter Property="Background" Value="#263449"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+    </Window.Styles>
+
     <Grid ClipToBounds="False" Background="Transparent">
         <ItemsControl Classes="smart-box-layer"
                       ItemsSource="{Binding SmartBoxes}"
@@ -40,171 +65,165 @@
                 <DataTemplate x:DataType="vm:SmartBoxViewModel">
                     <Border Width="{Binding Width}"
                             Height="{Binding Height}"
-                            CornerRadius="18"
+                            CornerRadius="16"
                             BorderThickness="1"
-                            BorderBrush="#55FFFFFF"
-                            Background="#D7101724"
+                            BorderBrush="#36FFFFFF"
+                            Background="#CC08111F"
                             ClipToBounds="True">
-                        <Grid RowDefinitions="Auto,*">
-                            <Border Grid.Row="0"
-                                    Background="{Binding AccentBrush}"
-                                    CornerRadius="17,17,0,0"
-                                    Padding="12,9"
+                        <Grid RowDefinitions="3,Auto,*">
+                            <Border Grid.Row="0" Background="{Binding AccentBrush}"/>
+
+                            <Border Grid.Row="1"
+                                    Background="#66101A2B"
+                                    Padding="11,9"
                                     Cursor="SizeAll"
                                     PointerPressed="OnSmartBoxHeaderPointerPressed"
                                     PointerMoved="OnSmartBoxInteractionPointerMoved"
                                     PointerReleased="OnSmartBoxInteractionPointerReleased"
                                     PointerCaptureLost="OnSmartBoxInteractionPointerCaptureLost">
-                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Emoji}" FontSize="15" VerticalAlignment="Center"/>
-                                        <StackPanel Spacing="0">
-                                            <TextBlock Text="{Binding Title}"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="White"
-                                                       FontSize="13"
-                                                       TextTrimming="CharacterEllipsis"/>
-                                            <TextBlock Text="drag header to move"
-                                                       Foreground="#E2E8F0"
-                                                       FontSize="9"/>
-                                        </StackPanel>
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                    <Border Width="32"
+                                            Height="32"
+                                            CornerRadius="10"
+                                            Background="#18FFFFFF"
+                                            BorderBrush="#22FFFFFF"
+                                            BorderThickness="1"
+                                            VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Emoji}"
+                                                   FontSize="15"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                                    </Border>
+
+                                    <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Title}"
+                                                   Foreground="#F8FAFC"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding BoxSubtitle}"
+                                                   Foreground="#94A3B8"
+                                                   FontSize="10"
+                                                   TextTrimming="CharacterEllipsis"/>
                                     </StackPanel>
-                                    <Border Grid.Column="1"
-                                            Background="#2AFFFFFF"
+
+                                    <Border Grid.Column="2"
+                                            Background="#18FFFFFF"
                                             CornerRadius="999"
-                                            Padding="8,3"
+                                            Padding="8,4"
                                             VerticalAlignment="Center">
                                         <TextBlock Text="{Binding ItemCount}"
-                                                   Foreground="White"
+                                                   Foreground="#F8FAFC"
                                                    FontSize="11"
                                                    FontWeight="SemiBold"/>
                                     </Border>
                                 </Grid>
                             </Border>
 
-                            <Grid Grid.Row="1" RowDefinitions="Auto,*">
-                                <Border Grid.Row="0"
-                                        Background="#221E293B"
-                                        BorderBrush="#22334155"
-                                        BorderThickness="0,0,0,1"
-                                        Padding="10,7">
-                                    <TextBlock Text="Double-click to open • drag item to another box"
-                                               Foreground="#CBD5E1"
-                                               FontSize="10"
-                                               TextTrimming="CharacterEllipsis"/>
+                            <Grid Grid.Row="2">
+                                <ScrollViewer Padding="10,9,10,10"
+                                              VerticalScrollBarVisibility="Auto"
+                                              HorizontalScrollBarVisibility="Disabled">
+                                    <ItemsControl ItemsSource="{Binding Items}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:DesktopItemViewModel">
+                                                <Border CornerRadius="13"
+                                                        Background="#2B172033"
+                                                        BorderBrush="#1FFFFFFF"
+                                                        BorderThickness="1"
+                                                        Padding="8"
+                                                        Margin="0,0,0,8"
+                                                        Cursor="Hand"
+                                                        ToolTip.Tip="{Binding FullPath}"
+                                                        DoubleTapped="OnDesktopItemDoubleTapped"
+                                                        PointerPressed="OnDesktopItemPointerPressed"
+                                                        PointerMoved="OnDesktopItemPointerMoved"
+                                                        PointerReleased="OnDesktopItemPointerReleased"
+                                                        PointerCaptureLost="OnDesktopItemPointerCaptureLost">
+                                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="9">
+                                                        <Border Width="34"
+                                                                Height="34"
+                                                                CornerRadius="11"
+                                                                Background="#16FFFFFF"
+                                                                BorderBrush="#1FFFFFFF"
+                                                                BorderThickness="1"
+                                                                VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Icon}"
+                                                                       FontSize="17"
+                                                                       HorizontalAlignment="Center"
+                                                                       VerticalAlignment="Center"/>
+                                                        </Border>
+
+                                                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Name}"
+                                                                       Foreground="#F8FAFC"
+                                                                       FontSize="12"
+                                                                       FontWeight="SemiBold"
+                                                                       TextTrimming="CharacterEllipsis"/>
+                                                            <TextBlock Text="{Binding DetailsText}"
+                                                                       Foreground="#94A3B8"
+                                                                       FontSize="10"
+                                                                       TextTrimming="CharacterEllipsis"/>
+                                                        </StackPanel>
+
+                                                        <Button Grid.Column="2"
+                                                                Classes="icon-button"
+                                                                Content="↗"
+                                                                ToolTip.Tip="Open"
+                                                                HorizontalAlignment="Right"
+                                                                VerticalAlignment="Center"
+                                                                Click="OnDesktopItemOpenClick"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+
+                                <Border IsVisible="{Binding IsEmpty}"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Margin="18"
+                                        CornerRadius="16"
+                                        Background="#161E293B"
+                                        BorderBrush="#22FFFFFF"
+                                        BorderThickness="1"
+                                        Padding="18,16">
+                                    <StackPanel Spacing="7" HorizontalAlignment="Center">
+                                        <TextBlock Text="Drop items here"
+                                                   Foreground="#F8FAFC"
+                                                   FontSize="13"
+                                                   FontWeight="SemiBold"
+                                                   HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{Binding EmptyText}"
+                                                   Foreground="#94A3B8"
+                                                   FontSize="11"
+                                                   TextWrapping="Wrap"
+                                                   TextAlignment="Center"
+                                                   MaxWidth="220"/>
+                                    </StackPanel>
                                 </Border>
-
-                                <Grid Grid.Row="1">
-                                    <ScrollViewer Padding="10"
-                                                  VerticalScrollBarVisibility="Auto"
-                                                  HorizontalScrollBarVisibility="Disabled">
-                                        <ItemsControl ItemsSource="{Binding Items}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate x:DataType="vm:DesktopItemViewModel">
-                                                    <Border CornerRadius="12"
-                                                            Background="#22FFFFFF"
-                                                            BorderBrush="#22FFFFFF"
-                                                            BorderThickness="1"
-                                                            Padding="9,7"
-                                                            Margin="0,0,0,7"
-                                                            Cursor="Hand"
-                                                            ToolTip.Tip="{Binding FullPath}"
-                                                            DoubleTapped="OnDesktopItemDoubleTapped"
-                                                            PointerPressed="OnDesktopItemPointerPressed"
-                                                            PointerMoved="OnDesktopItemPointerMoved"
-                                                            PointerReleased="OnDesktopItemPointerReleased"
-                                                            PointerCaptureLost="OnDesktopItemPointerCaptureLost">
-                                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="9">
-                                                            <Border Width="28"
-                                                                    Height="28"
-                                                                    CornerRadius="9"
-                                                                    Background="#1EFFFFFF"
-                                                                    VerticalAlignment="Center">
-                                                                <TextBlock Text="{Binding Icon}"
-                                                                           FontSize="16"
-                                                                           HorizontalAlignment="Center"
-                                                                           VerticalAlignment="Center"/>
-                                                            </Border>
-                                                            <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
-                                                                <TextBlock Text="{Binding Name}"
-                                                                           Foreground="White"
-                                                                           FontSize="12"
-                                                                           FontWeight="Medium"
-                                                                           TextTrimming="CharacterEllipsis"/>
-                                                                <TextBlock Text="{Binding FullPath}"
-                                                                           Foreground="#94A3B8"
-                                                                           FontSize="9"
-                                                                           TextTrimming="CharacterEllipsis"/>
-                                                            </StackPanel>
-                                                            <StackPanel Grid.Column="2"
-                                                                        Spacing="4"
-                                                                        VerticalAlignment="Center"
-                                                                        HorizontalAlignment="Right">
-                                                                <Border Background="#1AFFFFFF"
-                                                                        CornerRadius="999"
-                                                                        Padding="7,3"
-                                                                        HorizontalAlignment="Right">
-                                                                    <TextBlock Text="{Binding Subtitle}"
-                                                                               Foreground="#CBD5E1"
-                                                                               FontSize="9"/>
-                                                                </Border>
-                                                                <Button Content="Open"
-                                                                        FontSize="10"
-                                                                        Padding="8,3"
-                                                                        HorizontalAlignment="Right"
-                                                                        Click="OnDesktopItemOpenClick"/>
-                                                            </StackPanel>
-                                                        </Grid>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </ScrollViewer>
-
-                                    <Border IsVisible="{Binding IsEmpty}"
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"
-                                            Margin="18"
-                                            CornerRadius="16"
-                                            Background="#1AFFFFFF"
-                                            BorderBrush="#22FFFFFF"
-                                            BorderThickness="1"
-                                            Padding="16,14">
-                                        <StackPanel Spacing="6" HorizontalAlignment="Center">
-                                            <TextBlock Text="Drop items here"
-                                                       Foreground="White"
-                                                       FontSize="13"
-                                                       FontWeight="SemiBold"
-                                                       HorizontalAlignment="Center"/>
-                                            <TextBlock Text="{Binding EmptyText}"
-                                                       Foreground="#94A3B8"
-                                                       FontSize="11"
-                                                       TextWrapping="Wrap"
-                                                       TextAlignment="Center"
-                                                       MaxWidth="210"/>
-                                        </StackPanel>
-                                    </Border>
-                                </Grid>
                             </Grid>
 
-                            <Border Grid.RowSpan="2"
+                            <Border Grid.RowSpan="3"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Bottom"
-                                    Width="26"
-                                    Height="26"
-                                    Margin="0,0,4,4"
-                                    CornerRadius="9"
-                                    Background="#CC0F172A"
-                                    BorderBrush="#66FFFFFF"
+                                    Width="24"
+                                    Height="24"
+                                    Margin="0,0,5,5"
+                                    CornerRadius="8"
+                                    Background="#D00F172A"
+                                    BorderBrush="#3DFFFFFF"
                                     BorderThickness="1"
                                     Cursor="BottomRightCorner"
+                                    ToolTip.Tip="Resize"
                                     PointerPressed="OnSmartBoxResizePointerPressed"
                                     PointerMoved="OnSmartBoxInteractionPointerMoved"
                                     PointerReleased="OnSmartBoxInteractionPointerReleased"
                                     PointerCaptureLost="OnSmartBoxInteractionPointerCaptureLost">
-                                <TextBlock Text="↘"
-                                           Foreground="White"
-                                           FontSize="12"
+                                <TextBlock Text="◢"
+                                           Foreground="#CBD5E1"
+                                           FontSize="11"
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center"/>
                             </Border>
@@ -214,43 +233,43 @@
             </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <Border HorizontalAlignment="Right"
+        <Border HorizontalAlignment="Center"
                 VerticalAlignment="Top"
                 Margin="18"
                 CornerRadius="22"
-                Background="#DD0F172A"
-                BorderBrush="#334155"
+                Background="#E00B1220"
+                BorderBrush="#2FFFFFFF"
                 BorderThickness="1"
-                Padding="14,11">
-            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                <TextBlock Text="🧹 TidyTop"
-                           Foreground="White"
-                           FontWeight="SemiBold"
-                           VerticalAlignment="Center"/>
-                <Border Background="#14233445" Width="1" Height="22"/>
-                <TextBlock Text="{Binding SummaryText}"
-                           Foreground="#CBD5E1"
-                           FontSize="11"
-                           VerticalAlignment="Center"/>
-                <Button Content="Refresh" Padding="10,6" Command="{Binding RefreshCommand}"/>
-                <Button Content="Add box" Padding="10,6" Command="{Binding AddSmartBoxCommand}"/>
-                <Button Content="Save" Padding="10,6" Command="{Binding SaveLayoutCommand}"/>
-                <Button Content="Reset" Padding="10,6" Command="{Binding ResetLayoutCommand}"/>
+                Padding="12,9">
+            <StackPanel Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
+                <Border Width="34" Height="34" CornerRadius="12" Background="#1EFFFFFF" BorderBrush="#22FFFFFF" BorderThickness="1">
+                    <TextBlock Text="🧹" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <StackPanel Spacing="0" VerticalAlignment="Center">
+                    <TextBlock Text="TidyTop" Foreground="#F8FAFC" FontSize="13" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding SummaryText}" Foreground="#94A3B8" FontSize="10"/>
+                </StackPanel>
+                <Border Background="#253244" Width="1" Height="28" Margin="4,0"/>
+                <Button Classes="toolbar-button" Content="Refresh" Command="{Binding RefreshCommand}"/>
+                <Button Classes="toolbar-button" Content="Add box" Command="{Binding AddSmartBoxCommand}"/>
+                <Button Classes="toolbar-button" Content="Auto layout" Click="OnAutoArrangeClick"/>
+                <Button Classes="toolbar-button" Content="Save" Command="{Binding SaveLayoutCommand}"/>
+                <Button Classes="toolbar-button" Content="Reset" Command="{Binding ResetLayoutCommand}"/>
             </StackPanel>
         </Border>
 
-        <Border HorizontalAlignment="Left"
+        <Border HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"
                 Margin="18"
                 CornerRadius="16"
-                Background="#DD0F172A"
-                BorderBrush="#334155"
+                Background="#D00B1220"
+                BorderBrush="#2FFFFFFF"
                 BorderThickness="1"
-                Padding="13,9">
-            <StackPanel Orientation="Horizontal" Spacing="10">
+                Padding="12,8">
+            <StackPanel Orientation="Horizontal" Spacing="9">
                 <TextBlock Text="●" Foreground="#22C55E"/>
-                <TextBlock Text="{Binding StatusMessage}" Foreground="#CBD5E1"/>
-                <TextBlock Text="{Binding ErrorMessage}" Foreground="#FCA5A5" IsVisible="{Binding HasError}"/>
+                <TextBlock Text="{Binding StatusMessage}" Foreground="#CBD5E1" FontSize="12"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="#FCA5A5" FontSize="12" IsVisible="{Binding HasError}"/>
             </StackPanel>
         </Border>
 

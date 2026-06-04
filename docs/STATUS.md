@@ -4,7 +4,7 @@ Last updated: 2026-06-04
 
 ## Honest summary
 
-TidyTop is now a cleaner MVP foundation with a first Windows desktop-overlay pass. The app scans real desktop items, reconciles them into SmartBoxes, persists layout JSON, renders SmartBoxes on a transparent canvas attached to the desktop host when possible, supports moving/resizing SmartBoxes directly on the desktop, opens desktop items through the OS shell, and supports basic drag-to-box item reassignment.
+TidyTop is now a cleaner MVP foundation with a first Windows desktop-overlay pass. The app scans real desktop items, reconciles them into SmartBoxes, persists layout JSON, renders SmartBoxes on a transparent canvas attached to the desktop host when possible, supports moving/resizing SmartBoxes directly on the desktop, opens desktop items through the OS shell, supports basic drag-to-box item reassignment, and now has a cleaner desktop UI with an auto-layout command for tidying box placement.
 
 ## What works now
 
@@ -20,7 +20,7 @@ TidyTop is now a cleaner MVP foundation with a first Windows desktop-overlay pas
 | Layout reconciliation | Implemented for new, deleted, duplicated, and unassigned items. |
 | Layout persistence | Implemented as `%APPDATA%/TidyTop/layout.json`. |
 | Settings persistence | Implemented as `%APPDATA%/TidyTop/settings.json`. |
-| UI rendering | Bound to `MainWindowViewModel` and `SmartBoxViewModel`. |
+| UI rendering | Bound to `MainWindowViewModel` and `SmartBoxViewModel`; current pass uses cleaner glass SmartBoxes, compact item rows, centered toolbar, and reduced visual noise. |
 | Desktop overlay shell | Implemented first pass: borderless, transparent, hidden from taskbar, and attached to WorkerW/Progman when possible. |
 | Canvas placement | Implemented using `SmartBox.X`, `Y`, `Width`, and `Height`. |
 | Visual SmartBox movement | Implemented: drag a SmartBox header to move it. |
@@ -29,6 +29,7 @@ TidyTop is now a cleaner MVP foundation with a first Windows desktop-overlay pas
 | Item launching | Implemented: double-click an item or press Open to launch file/folder/shortcut/URL through the OS shell. |
 | Manual item movement | Implemented first pass: drag an item from one SmartBox and drop it onto another. Assignment auto-saves. |
 | Manual SmartBox creation | Service and button create a basic manual SmartBox. No dialog yet. |
+| Auto layout | Implemented: command reflows SmartBoxes into balanced desktop columns and saves the result. |
 | Tests | Meaningful first tests exist for rules, layout, persistence, reconciliation, item launching, movement, and app VM. |
 
 ## What does not work yet
@@ -49,7 +50,7 @@ TidyTop is now a cleaner MVP foundation with a first Windows desktop-overlay pas
 
 The biggest risk is assuming the overlay is already a complete Fences-like replacement. The next proof should be:
 
-1. make item drag/drop visually clearer,
+1. add drop-target highlight/drag ghost,
 2. add a right-click move fallback,
 3. create/rename/delete SmartBoxes from UI,
 4. decide safe native Windows desktop icon handling.

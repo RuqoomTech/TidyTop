@@ -50,6 +50,12 @@ public sealed class SmartBoxViewModel : ReactiveObject
     public int ItemCount => Items.Count;
     public bool HasItems => ItemCount > 0;
     public bool IsEmpty => ItemCount == 0;
+    public string BoxSubtitle => Behavior switch
+    {
+        nameof(SmartBoxBehavior.CatchAll) => "Unboxed desktop items",
+        nameof(SmartBoxBehavior.Manual) => "Manual group",
+        _ => "Auto-sorted group"
+    };
 
     public string Title
     {

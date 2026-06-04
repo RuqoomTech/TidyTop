@@ -47,6 +47,29 @@ Acceptance criteria:
 - App restart restores the assignment.
 - Deleted desktop files are removed safely on next scan.
 
+## Current: Milestone 2.5 — UI/UX polish
+
+### M2.5-01 — Make overlay visually calmer
+
+Status: done.
+
+Acceptance criteria:
+
+- Remove repeated instruction text from every SmartBox.
+- Hide noisy full paths from rows and keep them in tooltips.
+- Use compact item cards and a cleaner command bar.
+- Keep double-click and Open action discoverable.
+
+### M2.5-02 — Add auto layout
+
+Status: done.
+
+Acceptance criteria:
+
+- Button reflows boxes into balanced desktop columns.
+- Result saves to layout JSON.
+- Boxes keep safe minimum size.
+
 ## Next: Milestone 3 — SmartBox CRUD UI
 
 ### M3-01 — Create SmartBox dialog
@@ -203,3 +226,14 @@ Notes:
 - Added basic drag-to-box item reassignment in the desktop overlay.
 - Layout auto-saves after item movement.
 - Improved the overlay layout with clearer item cards, instructions, and empty-state guidance.
+
+### D-09 — UI/UX polish and auto layout
+
+Completed in UI polish pass.
+
+Notes:
+
+- Reworked the desktop overlay into quieter glass cards.
+- Replaced visible full paths with concise item type/location labels.
+- Added centered toolbar with Auto layout.
+- Added workspace auto-arrange service and tests.

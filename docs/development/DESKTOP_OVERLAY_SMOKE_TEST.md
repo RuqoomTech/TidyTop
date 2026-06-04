@@ -18,16 +18,17 @@ Run this on Windows after every change to the desktop-hosting code.
 
 2. Confirm TidyTop does not appear as a normal taskbar app window.
 3. Confirm SmartBoxes are drawn directly over the desktop/wallpaper area.
-4. Confirm the floating toolbar appears at the top-right.
+4. Confirm the compact floating toolbar appears at the top-center.
 5. Press **Refresh** and confirm item counts update without crashing.
-6. Press **Add** and confirm a new SmartBox appears on the desktop surface.
-7. Drag a SmartBox header and confirm the box moves smoothly.
-8. Drag the bottom-right resize handle and confirm the box resizes without becoming too small.
-9. Double-click an item, or press its **Open** button, and confirm the file/folder/shortcut opens through Windows.
-10. Drag an item from one SmartBox and release it over another SmartBox; confirm it moves and counts update.
-11. Close the app, run it again, and confirm the moved/resized layout and item assignment load from disk.
-12. Open a normal application window and confirm it appears above TidyTop.
-13. Minimize all normal windows and confirm TidyTop is visible again on the desktop.
+6. Press **Add box** and confirm a new SmartBox appears on the desktop surface.
+7. Press **Auto layout** and confirm boxes reflow into clean columns without overlap.
+8. Drag a SmartBox header and confirm the box moves smoothly.
+9. Drag the bottom-right resize handle and confirm the box resizes without becoming too small.
+10. Double-click an item, or press its **Open** button, and confirm the file/folder/shortcut opens through Windows.
+11. Drag an item from one SmartBox and release it over another SmartBox; confirm it moves and counts update.
+12. Close the app, run it again, and confirm the moved/resized layout and item assignment load from disk.
+13. Open a normal application window and confirm it appears above TidyTop.
+14. Minimize all normal windows and confirm TidyTop is visible again on the desktop.
 
 ## Known limitations for this pass
 

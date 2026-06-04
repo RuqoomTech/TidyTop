@@ -54,6 +54,16 @@ public partial class MainWindow : Window
         Height = screen.Bounds.Height / screen.Scaling;
     }
 
+
+    private async void OnAutoArrangeClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            await viewModel.AutoArrangeAsync((int)Math.Round(ClientSize.Width), (int)Math.Round(ClientSize.Height));
+            e.Handled = true;
+        }
+    }
+
     private void OnSmartBoxHeaderPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         BeginSmartBoxInteraction(sender, e, SmartBoxInteractionMode.Move);

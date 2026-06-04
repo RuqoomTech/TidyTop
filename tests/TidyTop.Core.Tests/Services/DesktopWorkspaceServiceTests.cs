@@ -50,6 +50,38 @@ public class DesktopWorkspaceServiceTests
         Assert.Contains(catchAll.ItemPaths, path => path.Equals(item.NormalizedPath, StringComparison.OrdinalIgnoreCase));
     }
 
+
+    [Fact]
+    public async Task AutoArrangeAsync_SpacesSmartBoxesInsideSurface()
+    {
+        var items = new[]
+        {
+            CreateItem("A", @"C:\Desktop\A.lnk", ".lnk", DesktopItemType.Shortcut),
+            CreateItem("B", @"C:\Desktop\B.lnk", ".lnk", DesktopItemType.Shortcut)
+        };
+
+        var layout = new DesktopLayout();
+        layout.SmartBoxes.Add(new SmartBox { Title = "One", X = 0, Y = 0 });
+        layout.SmartBoxes.Add(new SmartBox { Title = "Two", X = 0, Y = 0 });
+        layout.SmartBoxes.Add(new SmartBox { Title = "Other", Behavior = SmartBoxBehavior.CatchAll, X = 0, Y = 0 });
+
+        var store = new MemoryLayoutStore(layout);
+        var scanner = new FakeDesktopScanner(items);
+        var service = new DesktopWorkspaceService(scanner, store, new LayoutReconciler());
+
+        await service.LoadAsync();
+        var workspace = await service.AutoArrangeAsync(1440, 900);
+
+        Assert.All(workspace.Layout.SmartBoxes, box =>
+        {
+            Assert.True(box.X >= 28);
+            Assert.True(box.Y >= 86);
+            Assert.True(box.Width >= SmartBox.MinimumWidth);
+            Assert.True(box.Height >= SmartBox.MinimumHeight);
+        });
+        Assert.True(store.SaveCount >= 2);
+    }
+
     private static DesktopItem CreateItem(string name, string path, string extension, DesktopItemType type)
     {
         return new DesktopItem

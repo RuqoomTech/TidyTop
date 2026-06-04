@@ -27,8 +27,8 @@ public static class DefaultSmartBoxFactory
             "Office & Documents",
             "📊",
             "#2F855A",
-            24,
-            24,
+            28,
+            96,
             new[] { ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".pdf", ".odt", ".ods", ".odp" },
             new[] { "word", "excel", "powerpoint", "office", "acrobat", "reader", "document", "spreadsheet", "presentation" });
     }
@@ -39,8 +39,8 @@ public static class DefaultSmartBoxFactory
             "Development",
             "🛠️",
             "#2563EB",
-            368,
-            24,
+            374,
+            96,
             new[] { ".cs", ".js", ".jsx", ".ts", ".tsx", ".py", ".java", ".cpp", ".h", ".json", ".md", ".sln", ".csproj" },
             new[] { "visual studio", "code", "vscode", "rider", "intellij", "github", "git", "repo", "project" });
     }
@@ -51,8 +51,8 @@ public static class DefaultSmartBoxFactory
             "Web & Communication",
             "💬",
             "#0E7490",
-            712,
-            24,
+            720,
+            96,
             new[] { ".url", ".html", ".htm" },
             new[] { "chrome", "edge", "firefox", "browser", "discord", "telegram", "whatsapp", "zoom", "teams", "slack", "outlook" });
     }
@@ -63,8 +63,8 @@ public static class DefaultSmartBoxFactory
             "Games",
             "🎮",
             "#7E22CE",
-            24,
-            320,
+            28,
+            390,
             Array.Empty<string>(),
             new[] { "steam", "epic games", "game", "games", "minecraft", "riot", "blizzard", "gog", "origin", "ubisoft" });
     }
@@ -75,8 +75,8 @@ public static class DefaultSmartBoxFactory
             "Files & Folders",
             "📁",
             "#C2410C",
-            368,
-            320,
+            374,
+            390,
             new[] { ".txt", ".rtf", ".zip", ".rar", ".7z", ".png", ".jpg", ".jpeg", ".gif", ".mp4", ".mov", ".avi" },
             new[] { "archive", "folder", "download", "file" });
 
@@ -93,8 +93,10 @@ public static class DefaultSmartBoxFactory
             AccentColor = "#475569",
             Behavior = SmartBoxBehavior.CatchAll,
             IsSystemBox = true,
-            X = 712,
-            Y = 320
+            X = 720,
+            Y = 390,
+            Width = 328,
+            Height = 276
         };
     }
 
@@ -128,6 +130,8 @@ public static class DefaultSmartBoxFactory
             IsSystemBox = true,
             X = x,
             Y = y,
+            Width = 328,
+            Height = 276,
             Rules = rules
         };
     }

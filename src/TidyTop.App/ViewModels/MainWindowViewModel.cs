@@ -149,6 +149,22 @@ public sealed class MainWindowViewModel : ViewModelBase
             .FirstOrDefault();
     }
 
+
+    public async Task AutoArrangeAsync(int surfaceWidth, int surfaceHeight)
+    {
+        try
+        {
+            BeginBusy("Tidying desktop layout...");
+            var workspace = await _workspaceService.AutoArrangeAsync(surfaceWidth, surfaceHeight);
+            ApplyWorkspace(workspace);
+            EndBusy("Layout tidied. Drag boxes to fine-tune.");
+        }
+        catch (Exception ex)
+        {
+            Fail($"Could not auto-arrange layout: {ex.Message}");
+        }
+    }
+
     public async Task CommitSmartBoxGeometryAsync(SmartBoxViewModel smartBox)
     {
         ArgumentNullException.ThrowIfNull(smartBox);

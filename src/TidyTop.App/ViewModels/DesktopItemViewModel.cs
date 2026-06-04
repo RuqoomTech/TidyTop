@@ -1,3 +1,4 @@
+using System.IO;
 using TidyTop.Core.Models;
 
 namespace TidyTop.App.ViewModels;
@@ -34,4 +35,21 @@ public sealed class DesktopItemViewModel
         _ when string.IsNullOrWhiteSpace(Item.Extension) => "File",
         _ => Item.Extension.TrimStart('.').ToUpperInvariant()
     };
+
+    public string LocationName
+    {
+        get
+        {
+            var directory = Path.GetDirectoryName(Item.FullPath);
+            if (string.IsNullOrWhiteSpace(directory))
+            {
+                return "Desktop";
+            }
+
+            var name = Path.GetFileName(directory);
+            return string.IsNullOrWhiteSpace(name) ? "Desktop" : name;
+        }
+    }
+
+    public string DetailsText => $"{Subtitle} • {LocationName}";
 }

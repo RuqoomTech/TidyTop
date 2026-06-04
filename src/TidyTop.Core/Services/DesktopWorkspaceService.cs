@@ -69,6 +69,23 @@ public sealed class DesktopWorkspaceService : IDesktopWorkspaceService
     }
 
 
+
+    public async Task<DesktopWorkspace> AutoArrangeAsync(int surfaceWidth, int surfaceHeight, CancellationToken cancellationToken = default)
+    {
+        _layout ??= await _layoutStore.LoadAsync(cancellationToken) ?? DefaultSmartBoxFactory.CreateDefaultLayout();
+        if (_lastItems.Count == 0)
+        {
+            _lastItems = await _scanner.ScanAsync(cancellationToken);
+        }
+
+        ArrangeSmartBoxes(_layout, surfaceWidth, surfaceHeight);
+        _layout.UpdatedUtc = DateTimeOffset.UtcNow;
+
+        var workspace = _reconciler.Reconcile(_layout, _lastItems);
+        await _layoutStore.SaveAsync(workspace.Layout, cancellationToken);
+        return workspace;
+    }
+
     public async Task UpdateSmartBoxGeometryAsync(
         Guid smartBoxId,
         int x,
@@ -145,6 +162,80 @@ public sealed class DesktopWorkspaceService : IDesktopWorkspaceService
         var workspace = _reconciler.Reconcile(_layout, _lastItems);
         await _layoutStore.SaveAsync(workspace.Layout, cancellationToken);
         return workspace;
+    }
+
+
+    private static void ArrangeSmartBoxes(DesktopLayout layout, int surfaceWidth, int surfaceHeight)
+    {
+        const int margin = 28;
+        const int gap = 18;
+        const int reservedTop = 86;
+        const int minimumColumnWidth = 300;
+        const int maximumColumnWidth = 430;
+        const int minimumBoxHeight = 198;
+        const int maximumBoxHeight = 340;
+
+        var safeWidth = Math.Max(900, surfaceWidth);
+        var columnCount = safeWidth switch
+        {
+            >= 1700 => 4,
+            >= 1180 => 3,
+            >= 760 => 2,
+            _ => 1
+        };
+
+        var availableWidth = Math.Max(minimumColumnWidth, safeWidth - (margin * 2) - (gap * (columnCount - 1)));
+        var columnWidth = Math.Clamp(availableWidth / columnCount, minimumColumnWidth, maximumColumnWidth);
+        var xPositions = Enumerable.Range(0, columnCount)
+            .Select(index => margin + (index * (columnWidth + gap)))
+            .ToArray();
+        var yPositions = Enumerable.Repeat(reservedTop, columnCount).ToArray();
+
+        var orderedBoxes = layout.SmartBoxes
+            .OrderBy(box => box.Behavior == SmartBoxBehavior.CatchAll ? 1 : 0)
+            .ThenBy(box => box.CreatedUtc)
+            .ThenBy(box => box.Title, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        foreach (var smartBox in orderedBoxes)
+        {
+            var column = IndexOfShortestColumn(yPositions);
+            var estimatedHeight = EstimateBoxHeight(smartBox.ItemPaths.Count, smartBox.Behavior == SmartBoxBehavior.CatchAll);
+            var x = xPositions[column];
+            var y = yPositions[column];
+
+            smartBox.SetGeometry(x, y, columnWidth, estimatedHeight);
+            yPositions[column] += estimatedHeight + gap;
+        }
+    }
+
+    private static int EstimateBoxHeight(int itemCount, bool isCatchAll)
+    {
+        const int minimumBoxHeight = 198;
+        const int maximumBoxHeight = 340;
+
+        if (itemCount == 0)
+        {
+            return isCatchAll ? 220 : minimumBoxHeight;
+        }
+
+        return Math.Clamp(152 + (itemCount * 52), minimumBoxHeight, maximumBoxHeight);
+    }
+
+    private static int IndexOfShortestColumn(IReadOnlyList<int> yPositions)
+    {
+        var index = 0;
+        var shortest = yPositions[0];
+        for (var i = 1; i < yPositions.Count; i++)
+        {
+            if (yPositions[i] < shortest)
+            {
+                index = i;
+                shortest = yPositions[i];
+            }
+        }
+
+        return index;
     }
 
     private void RemoveItemFromAllBoxes(string normalizedPath)

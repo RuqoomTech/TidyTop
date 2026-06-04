@@ -6,6 +6,10 @@ All notable project changes should be recorded here.
 
 ### Added
 
+- UI/UX polish pass: cleaner glass SmartBox cards, quieter headers, compact item rows, hidden raw paths, centered command bar, and improved status panel.
+- Auto layout action that spaces SmartBoxes into balanced desktop columns and saves the result.
+- Better first-run default SmartBox positions that avoid top-left clutter and toolbar overlap.
+- Desktop item detail labels that show item type and containing folder instead of noisy full paths.
 - Desktop item shell launching: double-click an item or press Open to launch files, folders, `.lnk` shortcuts, and `.url` shortcuts.
 - Basic manual item movement: drag an item from one SmartBox and drop it onto another SmartBox.
 - Workspace item reassignment API with autosave.

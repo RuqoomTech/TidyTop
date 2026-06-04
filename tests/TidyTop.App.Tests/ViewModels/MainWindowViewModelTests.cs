@@ -126,6 +126,17 @@ public class MainWindowViewModelTests
             return Task.FromResult(_workspace);
         }
 
+
+        public Task<DesktopWorkspace> AutoArrangeAsync(int surfaceWidth, int surfaceHeight, CancellationToken cancellationToken = default)
+        {
+            foreach (var box in _workspace.Layout.SmartBoxes)
+            {
+                box.SetGeometry(28, 86, 320, 220);
+            }
+
+            return Task.FromResult(_workspace);
+        }
+
         public Task UpdateSmartBoxGeometryAsync(Guid smartBoxId, int x, int y, int width, int height, CancellationToken cancellationToken = default)
         {
             var box = _workspace.Layout.FindBox(smartBoxId);

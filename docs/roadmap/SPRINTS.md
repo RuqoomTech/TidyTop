@@ -55,6 +55,23 @@ Exit criteria:
 
 - User can manually assign an item to a box and see it survive restart.
 
+## Sprint 2.5 — UI/UX polish
+
+Status: done in UI polish pass.
+
+Scope:
+
+- Calm glass-card SmartBox UI.
+- Compact item rows.
+- Remove noisy full-path display from item rows.
+- Add centered command bar.
+- Add Auto layout action.
+
+Exit criteria:
+
+- The overlay feels cleaner on a real desktop wallpaper.
+- User can fix messy box placement with one button.
+
 ## Sprint 3 — SmartBox CRUD UI
 
 Goal: make manual boxes useful.
